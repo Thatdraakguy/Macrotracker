@@ -1,0 +1,13 @@
+name: macro_habit_app
+description: A new Flutter project.
+
+environment:
+  sdk: '>=3.8.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  webview_flutter: ^4.4.1
+flutter:
+  assets:
+    - assets/
