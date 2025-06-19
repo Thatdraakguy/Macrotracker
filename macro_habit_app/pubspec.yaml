@@ -10,4 +10,4 @@ dependencies:
   webview_flutter: ^4.4.1
 flutter:
   assets:
-    - assets/
+    - assets/images/
