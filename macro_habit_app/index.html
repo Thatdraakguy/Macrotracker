@@ -148,22 +148,24 @@
     <!-- Habits Section -->
     <section id="habitsPage" style="display: none;">
         <h1>Habits</h1>
-        <ul id="habitList">
-            <li><input type="checkbox" /> Drink Water</li>
-            <li><input type="checkbox" /> Sleep 8 Hours</li>
-            <li><input type="checkbox" /> Exercise 20 mins</li>
-        </ul>
+        <div id="habitGrid"></div>
     </section>
 
     <!-- Settings Section -->
-<!--    <section id="settingsPage" style="display: none;">-->
-<!--        <h1>Settings</h1>-->
-<!--        <p>Customize your experience here.</p>-->
-<!--    </section>-->
-<!--</main>-->
+    <section id="settingsPage" style="display: none;">
+        <h1>Settings</h1>
+        <form id="habitForm">
+            <input type="text" id="habitName" placeholder="New habit name" required />
+            <input type="color" id="habitColor" value="#81c784" />
+            <button type="submit">Add Habit</button>
+        </form>
+        <ul id="habitListSettings"></ul>
+    </section>
 
 
-&lt;!&ndash; Log button floating above bottom nav &ndash;&gt;
+
+</main>
+</main>
 <div class="log-btn-container" id="logBtnContainer" tabindex="0" aria-label="Open logging options">
  <div class="log-btn" id="logBtn" role="button" aria-pressed="false" tabindex="0" title="Logging features">✍️</div>
    <div class="log-popup" id="logPopup">
@@ -203,8 +205,20 @@
         logBtn.setAttribute('aria-pressed', 'false');
       }
     });
+
+        // ✅ ADD THIS FUNCTION — it's missing!
+    function showPage(pageId) {
+      const sections = document.querySelectorAll('main > section');
+      sections.forEach(section => {
+        section.style.display = (section.id === pageId) ? 'block' : 'none';
+      });
+    }
+
+    // ✅ Optional: Load dashboard first
+    window.addEventListener('DOMContentLoaded', () => showPage('dashboardPage'));
 </script>
-</main>
+
+
 </body>
 
 </html>
