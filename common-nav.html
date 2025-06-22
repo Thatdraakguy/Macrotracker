@@ -1,0 +1,99 @@
+<style>
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: #3a3a3a;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      border-top: 2px solid #252525;
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.7);
+      z-index: 1000;
+    }
+
+    .bottom-nav a img {
+      width: 50px;
+    }
+
+    .log-btn-container {
+      position: fixed;
+      bottom: 80px; /* above nav */
+      left: 48%;
+      z-index: 1100;
+    }
+
+    .log-btn {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #4caf50;
+      box-shadow: 0 0 100px #66bb6a;
+      border: 2px solid #2e7d32;
+      color: white;
+      font-size: 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.3s ease;
+      position: relative;
+    }
+
+    .log-btn:hover {
+      background: #81c784;
+      box-shadow: 0 0 15px #a5d6a7;
+    }
+
+    .log-popup {
+      position: absolute;
+      bottom: 72px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #333;
+      padding: 12px 16px;
+      border-radius: 6px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.8);
+      color: #a5d6a7;
+      font-size: 0.9rem;
+      white-space: nowrap;
+      user-select: none;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      width: max-content;
+      text-align: center;
+      z-index: 1200;
+    }
+
+    .log-btn-container:hover .log-popup,
+    .log-btn-container.active .log-popup {
+      opacity: 1;
+      pointer-events: auto;
+    }
+</style>
+
+<nav class="bottom-nav" role="navigation" aria-label="Main navigation">
+    <a href="habits.html" aria-label="Go to Habits page">
+        <img src="images/Onriselogo.png" alt="Onrise" />
+    </a>
+    <a href="index.html" aria-label="Go to Dashboard page">
+        <img src="images/goldencarrotblackbg.jpg" alt="Golden carrot" />
+    </a>
+    <a href="settings.html" aria-label="Go to Settings page">
+        <img src="images/Settingsblackpng.png" alt="Settings" />
+    </a>
+</nav>
+
+<div class="log-popup" id="logPopup">
+    <strong>Log Feature</strong>
+    <div class="popup-buttons">
+        <button class="popup-btn">📷 Take Photo</button>
+        <button class="popup-btn">💧 Water</button>
+        <button class="popup-btn">✍️ Manual Entry</button>
+        <button class="popup-btn">⚖️ Log Weight</button>
+    </div>
+</div>

@@ -152,6 +152,30 @@
           opacity: 1;
           pointer-events: auto;
         }
+        .popup-buttons {
+  display: flex;
+  flex-direction: column;
+  margin-top: 10px;
+  gap: 8px;
+}
+
+.popup-btn {
+  background-color: #4a4a4a;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s ease;
+  text-align: left;
+}
+
+.popup-btn:hover {
+  background-color: #66bb6a;
+  color: #1b5e20;
+}
+
     </style>
 </head>
 <body>
@@ -183,45 +207,7 @@
 
 
 </main>
-<div class="log-btn-container" id="logBtnContainer" tabindex="0" aria-label="Open logging options">
- <div class="log-btn" id="logBtn" role="button" aria-pressed="false" tabindex="0" title="Logging features">✍️</div>
-   <div class="log-popup" id="logPopup">
-      <strong>Log Feature</strong><br/>
-       Take photo, calculate macros, track weight, journal your day!
-  </div>
-</div>
-
-<!--&lt;!&ndash; Bottom nav bar &ndash;&gt;-->
-<nav class="bottom-nav" role="navigation" aria-label="Main navigation">
-    <a href="habits.html" aria-label="Go to Habits page">
-        <img src="images/Onriselogo.png" alt="Onrise" width="50">
-    </a>
-    <a href="index.html" aria-label="Go to Dashboard page">
-        <img src="images/goldencarrotblackbg.jpg" alt="Golden carrot" width="50">
-    </a>
-    <a href="settings.html" aria-label="Go to Settings page">
-        <img src="images/Settingsblackpng.png" alt="Settings" width="50">
-    </a>
-</nav>
-
 <script>
-    const logBtnContainer = document.getElementById('logBtnContainer');
-    const logBtn = document.getElementById('logBtn');
-
-    // For mobile: toggle popup on click
-    logBtn.addEventListener('click', () => {
-      logBtnContainer.classList.toggle('active');
-      const pressed = logBtn.getAttribute('aria-pressed') === 'true';
-      logBtn.setAttribute('aria-pressed', String(!pressed));
-    });
-
-    // Optional: close popup if clicked outside on mobile
-    document.addEventListener('click', (e) => {
-      if (!logBtnContainer.contains(e.target)) {
-        logBtnContainer.classList.remove('active');
-        logBtn.setAttribute('aria-pressed', 'false');
-      }
-    });
 
         // ✅ ADD THIS FUNCTION — it's missing!
     function showPage(pageId) {
@@ -235,7 +221,36 @@
     window.addEventListener('DOMContentLoaded', () => showPage('dashboardPage'));
 </script>
 
+<div id="common-nav-placeholder"></div>
 
+<script>
+    // Load common-nav.html content into the placeholder div
+    fetch('common-nav.html')
+      .then(response => response.text())
+      .then(html => {
+        document.getElementById('common-nav-placeholder').innerHTML = html;
+
+        // After loading, add event listeners for the log button
+        const logBtnContainer = document.getElementById('logBtnContainer');
+        const logBtn = document.getElementById('logBtn');
+
+        if (logBtn && logBtnContainer) {
+          logBtn.addEventListener('click', () => {
+            logBtnContainer.classList.toggle('active');
+            const pressed = logBtn.getAttribute('aria-pressed') === 'true';
+            logBtn.setAttribute('aria-pressed', String(!pressed));
+          });
+
+          document.addEventListener('click', (e) => {
+            if (!logBtnContainer.contains(e.target)) {
+              logBtnContainer.classList.remove('active');
+              logBtn.setAttribute('aria-pressed', 'false');
+            }
+          });
+        }
+      })
+      .catch(err => console.error('Failed to load common-nav.html:', err));
+</script>
 
 </body>
 

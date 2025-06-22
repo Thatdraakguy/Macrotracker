@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Water Stats</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+          background: #121212;
+          color: white;
+          font-family: sans-serif;
+          padding: 20px;
+        }
+
+        canvas {
+          background: #1e1e1e;
+          border-radius: 8px;
+          padding: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Your Water Intake History 💦</h1>
+<canvas id="waterChart" width="400" height="200"></canvas>
+
+<script>
+    const waterData = [];
+    const labels = [];
+
+    for (let i = 0; i < 30; i++) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const key = `water_${date.toISOString().split('T')[0]}`;
+      const value = parseInt(localStorage.getItem(key)) || 0;
+
+      waterData.unshift(value);
+      labels.unshift(date.toISOString().split('T')[0]);
+    }
+
+    new Chart(document.getElementById("waterChart"), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Water (ml)',
+          data: waterData,
+          fill: false,
+          borderColor: '#4CAF50',
+          tension: 0.1
+        }]
+      },
+      options: {
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+</script>
+
+</body>
+</html>

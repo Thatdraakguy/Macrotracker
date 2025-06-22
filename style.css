@@ -193,3 +193,46 @@ main {
   opacity: 1;
   pointer-events: auto;
 }
+.hover-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.main-button {
+  padding: 10px 16px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.hover-box {
+  display: none;
+  position: absolute;
+  top: 110%; /* below the button */
+  left: 0;
+  background-color: #222;
+  border: 1px solid #444;
+  padding: 10px;
+  border-radius: 10px;
+  z-index: 10;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hover-wrapper:hover .hover-box {
+  display: flex;
+}
+
+.hover-btn {
+  background-color: #444;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.hover-btn:hover {
+  background-color: #666;
+}
+

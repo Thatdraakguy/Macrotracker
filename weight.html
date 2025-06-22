@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Weight Tracker</title>
+    <style>
+        body {
+          font-family: sans-serif;
+          background: #121212;
+          color: white;
+          padding: 20px;
+        }
+
+        input[type="number"] {
+          padding: 10px;
+          font-size: 1rem;
+          margin-right: 10px;
+          width: 100px;
+        }
+
+        button {
+          padding: 10px 20px;
+          background-color: #4caf50;
+          color: white;
+          border: none;
+          cursor: pointer;
+          border-radius: 5px;
+        }
+
+        button:hover {
+          background-color: #81c784;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Log Your Weight</h1>
+<p>Enter how much your weight was (in kg):</p>
+<input type="number" id="weightInput" placeholder="e.g. 500" />
+<button onclick="logWeight()">Save</button>
+
+<script>
+    function getTodayKey() {
+      return new Date().toISOString().split('T')[0];
+    }
+
+    function logWeight() {
+      const amount = parseInt(document.getElementById('weightInput').value);
+      if (isNaN(amount) || amount <= 0) {
+        alert('Please enter a valid amount.');
+        return;
+      }
+      const key = `weight_${getTodayKey()}`;
+      localStorage.setItem(key, amount);
+      alert(`Saved ${amount}kg of weight for today!`);
+    }
+</script>
+
+</body>
+</html>
