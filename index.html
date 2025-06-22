@@ -175,17 +175,17 @@
 </div>
 
 <!--&lt;!&ndash; Bottom nav bar &ndash;&gt;-->
-    <nav class="bottom-nav" role="navigation" aria-label="Main navigation">
-        <button onclick="showPage('habitsPage')" aria-label="Go to Habits page">
-            <img src="images/Onriselogo.png" alt="Onrise" width="50">
-        </button>
-        <button onclick="showPage('dashboardPage')" aria-label="Go to Dashboard page">
-            <img src="images/goldencarrotblackbg.jpg" alt="Golden carrot" width="50">
-        </button>
-        <button onclick="showPage('settingsPage')" aria-label="Go to Settings page">
-            <img src="images/Settingsblackpng.png" alt="Settings" width="50">
-        </button>
-    </nav>
+<nav class="bottom-nav" role="navigation" aria-label="Main navigation">
+    <a href="habits.html" aria-label="Go to Habits page">
+        <img src="images/Onriselogo.png" alt="Onrise" width="50">
+    </a>
+    <a href="dashboard.html" aria-label="Go to Dashboard page">
+        <img src="images/goldencarrotblackbg.jpg" alt="Golden carrot" width="50">
+    </a>
+    <a href="settings.html" aria-label="Go to Settings page">
+        <img src="images/Settingsblackpng.png" alt="Settings" width="50">
+    </a>
+</nav>
 
 <script>
     const logBtnContainer = document.getElementById('logBtnContainer');
@@ -217,6 +217,7 @@
     // ✅ Optional: Load dashboard first
     window.addEventListener('DOMContentLoaded', () => showPage('dashboardPage'));
 </script>
+
 
 
 </body>

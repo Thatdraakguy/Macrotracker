@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Habits</title>
+    <style>
+        body {
+          font-family: sans-serif;
+          background: #121212;
+          color: white;
+          padding: 20px;
+        }
+
+        .habit {
+          padding: 10px 20px;
+          margin: 10px 0;
+          background: #1e1e1e;
+          border-left: 6px solid #4CAF50;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .habit.done {
+          background: #2e7d32;
+          text-decoration: line-through;
+        }
+
+        .habit:hover {
+          opacity: 0.8;
+        }
+
+        .nav {
+          margin-top: 30px;
+        }
+
+        .nav a {
+          color: #4CAF50;
+          text-decoration: none;
+          margin-right: 10px;
+        }
+
+        .nav a:hover {
+          text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+<h1>Track Your Habits</h1>
+
+<div id="habits-list"></div>
+
+<div class="nav">
+    <a href="index.html">Home</a>
+    <a href="macros.html">Macros</a>
+    <a href="settings.html">Settings</a>
+</div>
+
+<script>
+    const habits = ['Drink Water', 'Exercise', 'Read Book', 'Meditate', 'Sleep Early'];
+    const habitList = document.getElementById('habits-list');
+
+    habits.forEach(habit => {
+      const div = document.createElement('div');
+      div.className = 'habit';
+      div.textContent = habit;
+
+      // Load saved status
+      const isDone = localStorage.getItem(habit);
+      if (isDone === 'true') div.classList.add('done');
+
+      div.addEventListener('click', () => {
+        div.classList.toggle('done');
+        const done = div.classList.contains('done');
+        localStorage.setItem(habit, done);
+      });
+
+      habitList.appendChild(div);
+    });
+</script>
+</body>
+</html>
