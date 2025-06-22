@@ -5,26 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Macro Tracker</title>
     <style>
-        /* Reset and base */
-        * {
-          box-sizing: border-box;
-        }
-        body, html {
-          height: 100%;
-          margin: 0;
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #121212;
-          color: #white;
-          display: flex;
-          flex-direction: column;
-        }
-        main {
-          flex: 1;
+        body {
+          font-family: sans-serif;
+          background: #121212;
+          color: white;
           padding: 20px;
-          overflow-y: auto;
-          background: #2c2c2c;
         }
 
+        .habit {
+          padding: 10px 20px;
+          margin: 10px 0;
+          background: #1e1e1e;
+          border-left: 6px solid #4CAF50;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .habit.done {
+          background: #2e7d32;
+          text-decoration: line-through;
+        }
+
+        .habit:hover {
+          opacity: 0.8;
+        }
+
+        .nav {
+          margin-top: 30px;
+        }
+
+        .nav a {
+          color: #4CAF50;
+          text-decoration: none;
+          margin-right: 10px;
+        }
+
+        .nav a:hover {
+          text-decoration: underline;
+        }
         /* Bottom nav */
         nav.bottom-nav {
           position: fixed;
@@ -41,7 +59,7 @@
           z-index: 1000;
         }
 
-        nav.bottom-nav button {
+       nav.bottom-nav button {
           flex: 1;
           background: #4a4a4a;
           border: none;

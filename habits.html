@@ -19,6 +19,9 @@
           border-left: 6px solid #4CAF50;
           cursor: pointer;
           transition: all 0.2s ease;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
         }
 
         .habit.done {
@@ -28,6 +31,38 @@
 
         .habit:hover {
           opacity: 0.8;
+        }
+
+        .habit .points {
+          font-weight: 700;
+          font-size: 1.1rem;
+          padding: 4px 8px;
+          border-radius: 6px;
+          min-width: 28px;
+          text-align: center;
+          color: white;
+        }
+
+        /* Points colors */
+        .points-1 { background: #add8e6; } /* light blue */
+        .points-2 { background: #4caf50; } /* green */
+        .points-3 { background: #ffeb3b; color: #333; } /* yellow */
+        .points-4 { background: #ff9800; } /* orange */
+        .points-5 { background: #f44336; } /* red */
+
+        /* Input styles for editing */
+        .habit input[type="text"], .habit input[type="number"] {
+          font-size: 1rem;
+          padding: 4px 8px;
+          border-radius: 6px;
+          border: none;
+          outline: none;
+          width: 60%;
+          max-width: 200px;
+        }
+        .habit input[type="number"] {
+          width: 40px;
+          margin-left: 10px;
         }
 
         .nav {
@@ -43,6 +78,7 @@
         .nav a:hover {
           text-decoration: underline;
         }
+
         /* Bottom nav */
         nav.bottom-nav {
           position: fixed;
@@ -59,30 +95,16 @@
           z-index: 1000;
         }
 
-        nav.bottom-nav button {
+        nav.bottom-nav a {
           flex: 1;
-          background: #4a4a4a;
-          border: none;
-          margin: 0 8px;
-          border-radius: 12px;
-          color: #a5d6a7; /* light green */
-          font-weight: 600;
-          font-size: 1rem;
-          cursor: pointer;
-          padding: 10px 0;
-          transition: background 0.3s ease, color 0.3s ease;
           display: flex;
           justify-content: center;
           align-items: center;
-          user-select: none;
-          box-shadow: inset 0 0 5px #2f7d32;
         }
-        nav.bottom-nav button:hover,
-        nav.bottom-nav button:focus {
-          background: #81c784; /* vibrant green */
-          color: #1b5e20;
-          outline: none;
-          box-shadow: 0 0 8px #66bb6a;
+
+        nav.bottom-nav img {
+          width: 50px;
+          cursor: pointer;
         }
 
         /* Log button container - to position above the nav */
@@ -90,7 +112,6 @@
           position: fixed;
           bottom: 80px; /* just above nav bar */
           left: 48%;
-
           z-index: 1100;
         }
 
@@ -127,7 +148,7 @@
           transform: translateX(-50%);
           background: #333;
           padding: 12px 16px;
-          border-radius: px;
+          border-radius: 6px;
           box-shadow: 0 0 10px rgba(0,0,0,0.8);
           color: #a5d6a7;
           font-size: 0.9rem;
@@ -159,8 +180,6 @@
 
 <div id="habits-list"></div>
 
-
-
 <div class="log-btn-container" id="logBtnContainer" tabindex="0" aria-label="Open logging options">
     <div class="log-btn" id="logBtn" role="button" aria-pressed="false" tabindex="0" title="Logging features">✍️</div>
     <div class="log-popup" id="logPopup">
@@ -169,72 +188,104 @@
     </div>
 </div>
 
-<!--&lt;!&ndash; Bottom nav bar &ndash;&gt;-->
 <nav class="bottom-nav" role="navigation" aria-label="Main navigation">
     <a href="habits.html" aria-label="Go to Habits page">
-        <img src="images/Onriselogo.png" alt="Onrise" width="50">
+        <img src="images/Onriselogo.png" alt="Onrise" />
     </a>
     <a href="index.html" aria-label="Go to Dashboard page">
-        <img src="images/goldencarrotblackbg.jpg" alt="Golden carrot" width="50">
+        <img src="images/goldencarrotblackbg.jpg" alt="Golden carrot" />
     </a>
     <a href="settings.html" aria-label="Go to Settings page">
-        <img src="images/Settingsblackpng.png" alt="Settings" width="50">
+        <img src="images/Settingsblackpng.png" alt="Settings" />
     </a>
 </nav>
 
 <script>
-    const logBtnContainer = document.getElementById('logBtnContainer');
-    const logBtn = document.getElementById('logBtn');
+    const habitList = document.getElementById('habits-list');
 
-    // For mobile: toggle popup on click
-    logBtn.addEventListener('click', () => {
-      logBtnContainer.classList.toggle('active');
-      const pressed = logBtn.getAttribute('aria-pressed') === 'true';
-      logBtn.setAttribute('aria-pressed', String(!pressed));
-    });
+    // Load from localStorage or default
+    let habits = JSON.parse(localStorage.getItem('habitsData')) || [
+      { name: "Drink Water", points: 2 },
+      { name: "Exercise", points: 3 },
+      { name: "Read Book", points: 3 },
+      { name: "Meditate", points: 2 },
+      { name: "U better click me", points: 5 },
+      { name: "No zero time spent", points: 4 }
+    ];
 
-    // Optional: close popup if clicked outside on mobile
-    document.addEventListener('click', (e) => {
-      if (!logBtnContainer.contains(e.target)) {
-        logBtnContainer.classList.remove('active');
-        logBtn.setAttribute('aria-pressed', 'false');
-      }
-    });
+    // Utility: format date as YYYY-MM-DD
+    function getTodayKey() {
+      const now = new Date();
+      return now.toISOString().split('T')[0];
+    }
 
-        // ✅ ADD THIS FUNCTION — it's missing!
-    function showPage(pageId) {
-      const sections = document.querySelectorAll('main > section');
-      sections.forEach(section => {
-        section.style.display = (section.id === pageId) ? 'block' : 'none';
+    function renderHabits() {
+      habitList.innerHTML = '';
+      const today = getTodayKey();
+
+      habits.forEach((habit, index) => {
+        const div = document.createElement('div');
+        div.className = 'habit';
+        div.textContent = `${habit.name} (${habit.points}pt)`;
+
+        const habitDoneKey = `${today}_${habit.name}_done`;
+        const isDone = localStorage.getItem(habitDoneKey) === 'true';
+        if (isDone) div.classList.add('done');
+
+        updateColorByPoints(div, habit.points);
+
+        div.addEventListener('click', () => {
+          const done = !div.classList.contains('done');
+          div.classList.toggle('done');
+          localStorage.setItem(habitDoneKey, done);
+
+          // Update points only if marking as done
+          if (done) {
+            addPointsForToday(habit.points);
+          } else {
+            subtractPointsForToday(habit.points);
+          }
+        });
+
+        habitList.appendChild(div);
       });
     }
 
-    // ✅ Optional: Load dashboard first
-    window.addEventListener('DOMContentLoaded', () => showPage('dashboardPage'));
+    function updateColorByPoints(div, points) {
+      if (points >= 5) {
+        div.style.borderLeftColor = 'red';
+      } else if (points >= 4) {
+        div.style.borderLeftColor = 'orange';
+      } else if (points >= 3) {
+        div.style.borderLeftColor = 'yellow';
+      } else if (points >= 2) {
+        div.style.borderLeftColor = '#4CAF50'; // green
+      } else {
+        div.style.borderLeftColor = 'lightblue';
+      }
+    }
+
+    // Total points per day saved separately
+    function getDailyPointsKey() {
+      return `points_${getTodayKey()}`;
+    }
+
+    function getTodayPoints() {
+      return parseInt(localStorage.getItem(getDailyPointsKey()) || '0', 10);
+    }
+
+    function addPointsForToday(pts) {
+      const current = getTodayPoints();
+      localStorage.setItem(getDailyPointsKey(), current + pts);
+    }
+
+    function subtractPointsForToday(pts) {
+      const current = getTodayPoints();
+      localStorage.setItem(getDailyPointsKey(), Math.max(0, current - pts));
+    }
+
+    window.addEventListener('DOMContentLoaded', renderHabits);
 </script>
 
-
-<script>
-    const habits = ['Drink Water', 'Exercise', 'Read Book', 'Meditate', 'Sleep Early'];
-    const habitList = document.getElementById('habits-list');
-
-    habits.forEach(habit => {
-      const div = document.createElement('div');
-      div.className = 'habit';
-      div.textContent = habit;
-
-      // Load saved status
-      const isDone = localStorage.getItem(habit);
-      if (isDone === 'true') div.classList.add('done');
-
-      div.addEventListener('click', () => {
-        div.classList.toggle('done');
-        const done = div.classList.contains('done');
-        localStorage.setItem(habit, done);
-      });
-
-      habitList.appendChild(div);
-    });
-</script>
 </body>
 </html>

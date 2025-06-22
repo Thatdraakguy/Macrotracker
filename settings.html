@@ -3,47 +3,45 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Habits</title>
+    <title>Habit Stats</title>
     <style>
         body {
           font-family: sans-serif;
           background: #121212;
           color: white;
           padding: 20px;
+          margin-bottom: 80px;
         }
 
-        .habit {
-          padding: 10px 20px;
-          margin: 10px 0;
+        canvas {
           background: #1e1e1e;
-          border-left: 6px solid #4CAF50;
+          border-radius: 12px;
+          padding: 10px;
+          margin-top: 20px;
+        }
+
+        .chart-controls {
+          margin: 20px 0;
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+
+        .chart-controls button {
+          background: #4a148c;
+          color: white;
+          padding: 10px 16px;
+          border: none;
+          border-radius: 8px;
+          font-weight: bold;
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: background 0.3s ease;
         }
 
-        .habit.done {
-          background: #2e7d32;
-          text-decoration: line-through;
+        .chart-controls button:hover {
+          background: #7b1fa2;
         }
 
-        .habit:hover {
-          opacity: 0.8;
-        }
-
-        .nav {
-          margin-top: 30px;
-        }
-
-        .nav a {
-          color: #4CAF50;
-          text-decoration: none;
-          margin-right: 10px;
-        }
-
-        .nav a:hover {
-          text-decoration: underline;
-        }
-        /* Bottom nav */
         nav.bottom-nav {
           position: fixed;
           bottom: 0;
@@ -55,52 +53,28 @@
           justify-content: space-around;
           align-items: center;
           border-top: 2px solid #252525;
-          box-shadow: 0 -2px 8px rgba(0,0,0,0.7);
+          box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.7);
           z-index: 1000;
         }
 
-        nav.bottom-nav button {
-          flex: 1;
-          background: #4a4a4a;
-          border: none;
-          margin: 0 8px;
-          border-radius: 12px;
-          color: #a5d6a7; /* light green */
-          font-weight: 600;
-          font-size: 1rem;
-          cursor: pointer;
-          padding: 10px 0;
-          transition: background 0.3s ease, color 0.3s ease;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          user-select: none;
-          box-shadow: inset 0 0 5px #2f7d32;
-        }
-        nav.bottom-nav button:hover,
-        nav.bottom-nav button:focus {
-          background: #81c784; /* vibrant green */
-          color: #1b5e20;
-          outline: none;
-          box-shadow: 0 0 8px #66bb6a;
+        nav.bottom-nav a img {
+          width: 50px;
+          height: 50px;
         }
 
-        /* Log button container - to position above the nav */
         .log-btn-container {
           position: fixed;
-          bottom: 80px; /* just above nav bar */
+          bottom: 80px;
           left: 48%;
-
           z-index: 1100;
         }
 
-        /* Log button itself */
         .log-btn {
           width: 56px;
           height: 56px;
           left: -40%;
           border-radius: 50%;
-          background: #4caf50; /* dark lime green */
+          background: #4caf50;
           box-shadow: 0 0 100px #66bb6a;
           border: 2px solid #2e7d32;
           color: white;
@@ -113,106 +87,143 @@
           transition: background 0.3s ease;
           position: relative;
         }
+
         .log-btn:hover {
           background: #81c784;
           box-shadow: 0 0 15px #a5d6a7;
         }
-
-        /* Tooltip / popup window */
-        .log-popup {
-          position: absolute;
-          bottom: 72px;
-          left: 20%;
-          right: 20%;
-          transform: translateX(-50%);
-          background: #333;
-          padding: 12px 16px;
-          border-radius: px;
-          box-shadow: 0 0 10px rgba(0,0,0,0.8);
-          color: #a5d6a7;
-          font-size: 0.9rem;
-          white-space: nowrap;
-          user-select: none;
-          opacity: 0;
-          pointer-events: none;
-          transition: opacity 0.3s ease;
-          width: max-content;
-          text-align: center;
-          z-index: 1200;
-        }
-
-        /* Show popup on hover for desktop */
-        .log-btn-container:hover .log-popup {
-          opacity: 1;
-          pointer-events: auto;
-        }
-
-        /* Show popup on active class (for click toggle) */
-        .log-btn-container.active .log-popup {
-          opacity: 1;
-          pointer-events: auto;
-        }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1"></script>
 </head>
 <body>
-<h1>Settings</h1>
 
-<div id="habits-list"></div>
+<h1>📊 Habit Point History</h1>
 
-
-<div class="log-btn-container" id="logBtnContainer" tabindex="0" aria-label="Open logging options">
-    <div class="log-btn" id="logBtn" role="button" aria-pressed="false" tabindex="0" title="Logging features">✍️</div>
-    <div class="log-popup" id="logPopup">
-        <strong>Log Feature</strong><br/>
-        Take photo, calculate macros, track weight, journal your day!
-    </div>
+<div class="chart-controls">
+    <button onclick="setTimeSpan(7)">Last 7 days</button>
+    <button onclick="setTimeSpan(30)">Last 30 days</button>
+    <button onclick="setTimeSpan('all')">All Time</button>
+    <button onclick="resetZoom()">Reset Zoom</button>
 </div>
 
-<!--&lt;!&ndash; Bottom nav bar &ndash;&gt;-->
+<canvas id="pointsChart"></canvas>
+
+<!-- Log button -->
+<div class="log-btn-container" id="logBtnContainer">
+    <div class="log-btn" title="Logging features">✍️</div>
+</div>
+
+<!-- Bottom nav -->
 <nav class="bottom-nav" role="navigation" aria-label="Main navigation">
     <a href="habits.html" aria-label="Go to Habits page">
-        <img src="images/Onriselogo.png" alt="Onrise" width="50">
+        <img src="images/Onriselogo.png" alt="Onrise">
     </a>
     <a href="index.html" aria-label="Go to Dashboard page">
-        <img src="images/goldencarrotblackbg.jpg" alt="Golden carrot" width="50">
+        <img src="images/goldencarrotblackbg.jpg" alt="Golden carrot">
     </a>
     <a href="settings.html" aria-label="Go to Settings page">
-        <img src="images/Settingsblackpng.png" alt="Settings" width="50">
+        <img src="images/Settingsblackpng.png" alt="Settings">
     </a>
 </nav>
 
 <script>
-    const logBtnContainer = document.getElementById('logBtnContainer');
-    const logBtn = document.getElementById('logBtn');
+    const ctx = document.getElementById('pointsChart').getContext('2d');
+    const fullHistory = JSON.parse(localStorage.getItem('habitHistory') || '[]');
 
-    // For mobile: toggle popup on click
-    logBtn.addEventListener('click', () => {
-      logBtnContainer.classList.toggle('active');
-      const pressed = logBtn.getAttribute('aria-pressed') === 'true';
-      logBtn.setAttribute('aria-pressed', String(!pressed));
-    });
+    function getChartData(range = 'all') {
+      let filtered = fullHistory;
 
-    // Optional: close popup if clicked outside on mobile
-    document.addEventListener('click', (e) => {
-      if (!logBtnContainer.contains(e.target)) {
-        logBtnContainer.classList.remove('active');
-        logBtn.setAttribute('aria-pressed', 'false');
+      if (range !== 'all') {
+        const today = new Date();
+        filtered = fullHistory.filter(entry => {
+          const entryDate = new Date(entry.date);
+          const daysAgo = (today - entryDate) / (1000 * 60 * 60 * 24);
+          return daysAgo <= range;
+        });
+      }
+
+      return {
+        labels: filtered.map(e => e.date),
+        data: filtered.map(e => e.totalPoints)
+      };
+    }
+
+    const initial = getChartData();
+
+    const chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: initial.labels,
+        datasets: [{
+          label: 'Total Points',
+          data: initial.data,
+          borderColor: 'white',
+          borderWidth: 4,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          fill: false,
+          tension: 0.2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            labels: {
+              color: 'white'
+            }
+          },
+          zoom: {
+            pan: {
+              enabled: true,
+              mode: 'x',
+              modifierKey: 'ctrl'
+            },
+            zoom: {
+              wheel: {
+                enabled: true
+              },
+              pinch: {
+                enabled: true
+              },
+              mode: 'x'
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              color: 'white'
+            },
+            grid: {
+              color: '#444'
+            }
+          },
+          y: {
+            ticks: {
+              color: 'white'
+            },
+            grid: {
+              color: '#444'
+            },
+            beginAtZero: true
+          }
+        }
       }
     });
 
-        // ✅ ADD THIS FUNCTION — it's missing!
-    function showPage(pageId) {
-      const sections = document.querySelectorAll('main > section');
-      sections.forEach(section => {
-        section.style.display = (section.id === pageId) ? 'block' : 'none';
-      });
+    function setTimeSpan(days) {
+      const chartData = getChartData(days);
+      chart.data.labels = chartData.labels;
+      chart.data.datasets[0].data = chartData.data;
+      chart.update();
     }
 
-    // ✅ Optional: Load dashboard first
-    window.addEventListener('DOMContentLoaded', () => showPage('dashboardPage'));
+    function resetZoom() {
+      chart.resetZoom();
+    }
 </script>
-
-
-
 </body>
 </html>
