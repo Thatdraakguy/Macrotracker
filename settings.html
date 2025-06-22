@@ -1,30 +1,48 @@
 <!DOCTYPE html>
-<html lang="en" >
+<html lang="en">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Macro Tracker</title>
+    <title>Habits</title>
     <style>
-        /* Reset and base */
-        * {
-          box-sizing: border-box;
-        }
-        body, html {
-          height: 100%;
-          margin: 0;
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-          background: #1e1e1e;
-          color: #ddd;
-          display: flex;
-          flex-direction: column;
-        }
-        main {
-          flex: 1;
+        body {
+          font-family: sans-serif;
+          background: #121212;
+          color: white;
           padding: 20px;
-          overflow-y: auto;
-          background: #2c2c2c;
         }
 
+        .habit {
+          padding: 10px 20px;
+          margin: 10px 0;
+          background: #1e1e1e;
+          border-left: 6px solid #4CAF50;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .habit.done {
+          background: #2e7d32;
+          text-decoration: line-through;
+        }
+
+        .habit:hover {
+          opacity: 0.8;
+        }
+
+        .nav {
+          margin-top: 30px;
+        }
+
+        .nav a {
+          color: #4CAF50;
+          text-decoration: none;
+          margin-right: 10px;
+        }
+
+        .nav a:hover {
+          text-decoration: underline;
+        }
         /* Bottom nav */
         nav.bottom-nav {
           position: fixed;
@@ -137,40 +155,17 @@
     </style>
 </head>
 <body>
+<h1>Settings</h1>
 
-<main id="mainContent">
-    <!-- Dashboard Section -->
-    <section id="dashboardPage">
-        <h1>Dashboard</h1>
-        <p>This is your dashboard content area.</p>
-    </section>
-
-    <!-- Habits Section -->
-    <section id="habitsPage" style="display: none;">
-        <h1>Habits</h1>
-        <div id="habitGrid"></div>
-    </section>
-
-    <!-- Settings Section -->
-    <section id="settingsPage" style="display: none;">
-        <h1>Settings</h1>
-        <form id="habitForm">
-            <input type="text" id="habitName" placeholder="New habit name" required />
-            <input type="color" id="habitColor" value="#81c784" />
-            <button type="submit">Add Habit</button>
-        </form>
-        <ul id="habitListSettings"></ul>
-    </section>
+<div id="habits-list"></div>
 
 
-
-</main>
 <div class="log-btn-container" id="logBtnContainer" tabindex="0" aria-label="Open logging options">
- <div class="log-btn" id="logBtn" role="button" aria-pressed="false" tabindex="0" title="Logging features">✍️</div>
-   <div class="log-popup" id="logPopup">
-      <strong>Log Feature</strong><br/>
-       Take photo, calculate macros, track weight, journal your day!
-  </div>
+    <div class="log-btn" id="logBtn" role="button" aria-pressed="false" tabindex="0" title="Logging features">✍️</div>
+    <div class="log-popup" id="logPopup">
+        <strong>Log Feature</strong><br/>
+        Take photo, calculate macros, track weight, journal your day!
+    </div>
 </div>
 
 <!--&lt;!&ndash; Bottom nav bar &ndash;&gt;-->
@@ -220,5 +215,4 @@
 
 
 </body>
-
 </html>
