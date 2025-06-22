@@ -3,45 +3,47 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Habit Stats</title>
+    <title>Settings</title>
     <style>
         body {
           font-family: sans-serif;
           background: #121212;
           color: white;
           padding: 20px;
-          margin-bottom: 80px;
         }
 
-        canvas {
+        h1 {
+          margin-bottom: 20px;
+        }
+
+        .section {
+          margin-bottom: 30px;
+        }
+
+        .habit {
+          padding: 10px 20px;
+          margin: 10px 0;
           background: #1e1e1e;
-          border-radius: 12px;
-          padding: 10px;
-          margin-top: 20px;
-        }
-
-        .chart-controls {
-          margin: 20px 0;
-          display: flex;
-          gap: 10px;
-          flex-wrap: wrap;
-        }
-
-        .chart-controls button {
-          background: #4a148c;
-          color: white;
-          padding: 10px 16px;
-          border: none;
-          border-radius: 8px;
-          font-weight: bold;
+          border-left: 6px solid #4CAF50;
           cursor: pointer;
-          transition: background 0.3s ease;
+          transition: all 0.2s ease;
         }
 
-        .chart-controls button:hover {
-          background: #7b1fa2;
+        .stats-button {
+          background: #4b0082; /* dark purple */
+          border-left: 6px solid #bb86fc;
+          color: #e0e0ff;
         }
 
+        .habit:hover {
+          opacity: 0.8;
+        }
+
+        .nav {
+          margin-top: 30px;
+        }
+
+        /* Bottom nav */
         nav.bottom-nav {
           position: fixed;
           bottom: 0;
@@ -57,11 +59,16 @@
           z-index: 1000;
         }
 
-        nav.bottom-nav a img {
-          width: 50px;
-          height: 50px;
+        nav.bottom-nav a {
+          flex: 1;
+          text-align: center;
         }
 
+        nav.bottom-nav img {
+          width: 50px;
+        }
+
+        /* Log button container */
         .log-btn-container {
           position: fixed;
           bottom: 80px;
@@ -92,26 +99,57 @@
           background: #81c784;
           box-shadow: 0 0 15px #a5d6a7;
         }
+
+        .log-popup {
+          position: absolute;
+          bottom: 72px;
+          left: 20%;
+          right: 20%;
+          transform: translateX(-50%);
+          background: #333;
+          padding: 12px 16px;
+          border-radius: 8px;
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+          color: #a5d6a7;
+          font-size: 0.9rem;
+          white-space: nowrap;
+          user-select: none;
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.3s ease;
+          width: max-content;
+          text-align: center;
+          z-index: 1200;
+        }
+
+        .log-btn-container:hover .log-popup,
+        .log-btn-container.active .log-popup {
+          opacity: 1;
+          pointer-events: auto;
+        }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1"></script>
 </head>
 <body>
+<h1>Settings</h1>
 
-<h1>📊 Habit Point History</h1>
-
-<div class="chart-controls">
-    <button onclick="setTimeSpan(7)">Last 7 days</button>
-    <button onclick="setTimeSpan(30)">Last 30 days</button>
-    <button onclick="setTimeSpan('all')">All Time</button>
-    <button onclick="resetZoom()">Reset Zoom</button>
+<div class="section">
+    <label for="modeToggle">🌗 Dark/Light Mode (coming soon)</label><br>
+    <input type="checkbox" id="modeToggle" />
 </div>
 
-<canvas id="pointsChart"></canvas>
+<div class="section">
+    <a href="stats.html" class="habit stats-button">
+        📊 Stats
+    </a>
+</div>
 
 <!-- Log button -->
-<div class="log-btn-container" id="logBtnContainer">
-    <div class="log-btn" title="Logging features">✍️</div>
+<div class="log-btn-container" id="logBtnContainer" tabindex="0" aria-label="Open logging options">
+    <div class="log-btn" id="logBtn" role="button" aria-pressed="false" tabindex="0" title="Logging features">✍️</div>
+    <div class="log-popup" id="logPopup">
+        <strong>Log Feature</strong><br />
+        Take photo, calculate macros, track weight, journal your day!
+    </div>
 </div>
 
 <!-- Bottom nav -->
@@ -128,102 +166,21 @@
 </nav>
 
 <script>
-    const ctx = document.getElementById('pointsChart').getContext('2d');
-    const fullHistory = JSON.parse(localStorage.getItem('habitHistory') || '[]');
+    const logBtnContainer = document.getElementById('logBtnContainer');
+    const logBtn = document.getElementById('logBtn');
 
-    function getChartData(range = 'all') {
-      let filtered = fullHistory;
-
-      if (range !== 'all') {
-        const today = new Date();
-        filtered = fullHistory.filter(entry => {
-          const entryDate = new Date(entry.date);
-          const daysAgo = (today - entryDate) / (1000 * 60 * 60 * 24);
-          return daysAgo <= range;
-        });
-      }
-
-      return {
-        labels: filtered.map(e => e.date),
-        data: filtered.map(e => e.totalPoints)
-      };
-    }
-
-    const initial = getChartData();
-
-    const chart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: initial.labels,
-        datasets: [{
-          label: 'Total Points',
-          data: initial.data,
-          borderColor: 'white',
-          borderWidth: 4,
-          pointRadius: 4,
-          pointHoverRadius: 6,
-          fill: false,
-          tension: 0.2
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            labels: {
-              color: 'white'
-            }
-          },
-          zoom: {
-            pan: {
-              enabled: true,
-              mode: 'x',
-              modifierKey: 'ctrl'
-            },
-            zoom: {
-              wheel: {
-                enabled: true
-              },
-              pinch: {
-                enabled: true
-              },
-              mode: 'x'
-            }
-          }
-        },
-        scales: {
-          x: {
-            ticks: {
-              color: 'white'
-            },
-            grid: {
-              color: '#444'
-            }
-          },
-          y: {
-            ticks: {
-              color: 'white'
-            },
-            grid: {
-              color: '#444'
-            },
-            beginAtZero: true
-          }
-        }
-      }
+    logBtn.addEventListener('click', () => {
+      logBtnContainer.classList.toggle('active');
+      const pressed = logBtn.getAttribute('aria-pressed') === 'true';
+      logBtn.setAttribute('aria-pressed', String(!pressed));
     });
 
-    function setTimeSpan(days) {
-      const chartData = getChartData(days);
-      chart.data.labels = chartData.labels;
-      chart.data.datasets[0].data = chartData.data;
-      chart.update();
-    }
-
-    function resetZoom() {
-      chart.resetZoom();
-    }
+    document.addEventListener('click', (e) => {
+      if (!logBtnContainer.contains(e.target)) {
+        logBtnContainer.classList.remove('active');
+        logBtn.setAttribute('aria-pressed', 'false');
+      }
+    });
 </script>
 </body>
 </html>
