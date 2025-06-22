@@ -20,6 +20,7 @@ class MacroTrackerApp extends StatelessWidget {
         '/habits': (context) => const HabitsPage(),
         '/settings': (context) => const SettingsPage(),
       },
+
     );
   }
 }
