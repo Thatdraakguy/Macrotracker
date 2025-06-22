@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'pages/habits_page.dart';
 import 'pages/macro_tracker_page.dart';
 import 'pages/settings_page.dart';
+import 'dart:convert';
+import 'dart:html';
+
 
 void main() => runApp(const MacroTrackerApp());
 
@@ -24,3 +27,13 @@ class MacroTrackerApp extends StatelessWidget {
     );
   }
 }
+void saveHabits(List<String> habits) {
+  window.localStorage['habits'] = jsonEncode(habits);
+}
+
+List<String> loadHabits() {
+  final habitsJson = window.localStorage['habits'];
+  if (habitsJson == null) return [];
+  return List<String>.from(jsonDecode(habitsJson));
+}
+

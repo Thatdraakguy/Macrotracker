@@ -1,5 +1,12 @@
-// lib/pages/habits_page.dart
 import 'package:flutter/material.dart';
+
+const Set<String> fixedHabits = {
+  'Drink water',
+  'Exercise',
+  'Read book',
+  'Meditate',
+  'Sleep early',
+};
 
 class HabitsPage extends StatelessWidget {
   const HabitsPage({Key? key}) : super(key: key);
@@ -7,8 +14,12 @@ class HabitsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Habits')),
-      body: Center(child: Text('This is the Habits page')),
+      appBar: AppBar(title: const Text('Your Habits')),
+      body: ListView(
+        children: fixedHabits
+            .map((habit) => ListTile(title: Text(habit)))
+            .toList(),
+      ),
     );
   }
 }
