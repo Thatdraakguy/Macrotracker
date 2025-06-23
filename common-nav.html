@@ -1,5 +1,5 @@
 <style>
-    .bottom-nav {
+    nav.bottom-nav {
       position: fixed;
       bottom: 0;
       left: 0;
@@ -14,13 +14,33 @@
       z-index: 1000;
     }
 
-    .bottom-nav a img {
-      width: 50px;
+    nav.bottom-nav button {
+      flex: 1;
+      background: #4a4a4a;
+      border: none;
+      margin: 0 8px;
+      border-radius: 12px;
+      color: #a5d6a7;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 10px 0;
+      transition: background 0.3s ease, color 0.3s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      user-select: none;
+      box-shadow: inset 0 0 5px #2f7d32;
+    }
+
+    nav.bottom-nav button:hover {
+      background: #81c784;
+      color: #1b5e20;
     }
 
     .log-btn-container {
       position: fixed;
-      bottom: 80px; /* above nav */
+      bottom: 80px;
       left: 48%;
       z-index: 1100;
     }
@@ -28,6 +48,7 @@
     .log-btn {
       width: 56px;
       height: 56px;
+      left: -40%;
       border-radius: 50%;
       background: #4caf50;
       box-shadow: 0 0 100px #66bb6a;
@@ -51,11 +72,12 @@
     .log-popup {
       position: absolute;
       bottom: 72px;
-      left: 50%;
+      left: 20%;
+      right: 20%;
       transform: translateX(-50%);
       background: #333;
       padding: 12px 16px;
-      border-radius: 6px;
+      border-radius: 8px;
       box-shadow: 0 0 10px rgba(0,0,0,0.8);
       color: #a5d6a7;
       font-size: 0.9rem;
@@ -74,26 +96,46 @@
       opacity: 1;
       pointer-events: auto;
     }
+
+    .popup-buttons {
+      display: flex;
+      flex-direction: column;
+      margin-top: 10px;
+      gap: 8px;
+    }
+
+    .popup-btn {
+      background-color: #4a4a4a;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background 0.2s ease;
+      text-align: left;
+    }
+
+    .popup-btn:hover {
+      background-color: #66bb6a;
+      color: #1b5e20;
+    }
 </style>
 
-<nav class="bottom-nav" role="navigation" aria-label="Main navigation">
-    <a href="habits.html" aria-label="Go to Habits page">
-        <img src="images/Onriselogo.png" alt="Onrise" />
-    </a>
-    <a href="index.html" aria-label="Go to Dashboard page">
-        <img src="images/goldencarrotblackbg.jpg" alt="Golden carrot" />
-    </a>
-    <a href="settings.html" aria-label="Go to Settings page">
-        <img src="images/Settingsblackpng.png" alt="Settings" />
-    </a>
+<nav class="bottom-nav">
+    <button onclick="showPage('dashboardPage')">🏠</button>
+    <button onclick="showPage('habitsPage')">📝</button>
+    <button onclick="showPage('settingsPage')">⚙️</button>
 </nav>
 
-<div class="log-popup" id="logPopup">
-    <strong>Log Feature</strong>
-    <div class="popup-buttons">
-        <button class="popup-btn">📷 Take Photo</button>
-        <button class="popup-btn">💧 Water</button>
-        <button class="popup-btn">✍️ Manual Entry</button>
-        <button class="popup-btn">⚖️ Log Weight</button>
+<div class="log-btn-container" id="logBtnContainer">
+    <div class="log-btn" id="logBtn" aria-pressed="false">+</div>
+    <div class="log-popup">
+        Log your activity
+        <div class="popup-buttons">
+            <button class="popup-btn">Water</button>
+            <button class="popup-btn">Protein</button>
+            <button class="popup-btn">Calories</button>
+        </div>
     </div>
 </div>
