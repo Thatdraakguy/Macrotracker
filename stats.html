@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
+    <link rel="stylesheet" href="common.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Stats</title>
+    <title>Points Stats</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
@@ -21,95 +22,30 @@
 
         canvas {
           background: #1e1e1e;
-          border: 1px solid #333;
-          border-radius: 12px;
+          border-radius: 8px;
           padding: 10px;
         }
 
-        nav.bottom-nav {
-          position: fixed;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          height: 60px;
-          background: #3a3a3a;
-          display: flex;
-          justify-content: space-around;
-          align-items: center;
-          border-top: 2px solid #252525;
-          box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.7);
-          z-index: 1000;
-        }
-
-        nav.bottom-nav a img {
-          width: 50px;
-        }
-
-        .log-btn-container {
-          position: fixed;
-          bottom: 80px;
-          left: 48%;
-          z-index: 1100;
-        }
-
-        .log-btn {
-          width: 56px;
-          height: 56px;
-          left: -40%;
-          border-radius: 50%;
-          background: #4caf50;
-          box-shadow: 0 0 100px #66bb6a;
-          border: 2px solid #2e7d32;
-          color: white;
-          font-size: 30px;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          cursor: pointer;
-          user-select: none;
-          transition: background 0.3s ease;
-          position: relative;
-        }
-
-        .log-btn:hover {
-          background: #81c784;
-          box-shadow: 0 0 15px #a5d6a7;
-        }
-
-        .log-popup {
-          position: absolute;
-          bottom: 72px;
-          left: 20%;
-          right: 20%;
-          transform: translateX(-50%);
-          background: #333;
-          padding: 12px 16px;
-          border-radius: 8px;
-          box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
-          color: #a5d6a7;
-          font-size: 0.9rem;
-          white-space: nowrap;
-          user-select: none;
-          opacity: 0;
-          pointer-events: none;
-          transition: opacity 0.3s ease;
-          width: max-content;
+        .filter-buttons {
+          margin: 20px 0;
           text-align: center;
-          z-index: 1200;
         }
 
-        .log-btn-container:hover .log-popup,
-        .log-btn-container.active .log-popup {
-          opacity: 1;
-          pointer-events: auto;
+        .filter-buttons button {
+          font-size: 0.75rem;
+          padding: 6px 7px;
+          background-color: #333;
+          color: white;
+          border: 1px solid #555;
+          margin-right: 4px;
+          cursor: pointer;
+          border-radius: 4px;
         }
-        .chart-container {
-  max-height: 400px;
-  height: 60vw; /* responsive on mobile */
-  min-height: 200px;
-  width: 100%;
-  margin: 0 auto;
-}
+
+        .filter-buttons button:hover {
+          background-color: #555;
+        }
+
 
     </style>
 </head>
@@ -117,149 +53,104 @@
 
 <h1>Your Habit Points</h1>
 
-<div class="chart-container">
-    <canvas id="pointsChart"></canvas>
+<div class="filter-buttons">
+    <button onclick="renderChart(7)">7 Days</button>
+    <button onclick="renderChart(30)">30 Days</button>
+    <button onclick="renderChart('all')">Full Progress</button>
 </div>
 
-<!-- Log Button -->
-<div class="log-btn-container" id="logBtnContainer" tabindex="0" aria-label="Open logging options">
-    <div class="log-btn" id="logBtn" role="button" aria-pressed="false" tabindex="0" title="Logging features">✍️</div>
-    div class="popup-buttons">
-    <button class="popup-btn">📷 Take Photo</button>
-    <button class="popup-btn">💧 Water</button>
-    <button class="popup-btn">✍️ Manual Entry</button>
-    <button class="popup-btn">⚖️ Log Weight</button>
-</div>
+<div class="chart-container">
+    <canvas id="pointsChart" width="200" height="320"></canvas>
 </div>
 
 <!-- Bottom Navigation -->
 <nav class="bottom-nav" role="navigation" aria-label="Main navigation">
-    <a href="habits.html"><img src="images/Onriselogo.png" alt="Habits"></a>
-    <a href="index.html"><img src="images/goldencarrotblackbg.jpg" alt="Dashboard"></a>
-    <a href="settings.html"><img src="images/Settingsblackpng.png" alt="Settings"></a>
+    <a href="habits.html"><img src="images/Onriselogo.png" alt="Habits" width="50"></a>
+    <a href="index.html"><img src="images/goldencarrotblackbg.jpg" alt="Dashboard" width="50"></a>
+    <a href="settings.html"><img src="images/Settingsblackpng.png" alt="Settings" width="50"></a>
 </nav>
 
 <script>
-    // Log button behavior
-    const logBtnContainer = document.getElementById('logBtnContainer');
-    const logBtn = document.getElementById('logBtn');
+    let chart;
 
-    logBtn.addEventListener('click', () => {
-      logBtnContainer.classList.toggle('active');
-      const pressed = logBtn.getAttribute('aria-pressed') === 'true';
-      logBtn.setAttribute('aria-pressed', String(!pressed));
-    });
-
-    document.addEventListener('click', (e) => {
-      if (!logBtnContainer.contains(e.target)) {
-        logBtnContainer.classList.remove('active');
-        logBtn.setAttribute('aria-pressed', 'false');
-      }
-    });
-
-    // Load daily points from localStorage
+    // Load points data from localStorage keys "points_YYYY-MM-DD"
     function loadPointsData() {
-      const points = [];
-      const labels = [];
+      const entries = [];
 
-      Object.keys(localStorage).forEach(key => {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
         if (key.startsWith('points_')) {
-          const date = key.slice(7); // remove 'points_'
+          const date = key.replace('points_', '');
           const value = parseInt(localStorage.getItem(key), 10);
           if (!isNaN(value)) {
-            labels.push(date);
-            points.push(value);
+            entries.push({ date, value });
+          }
+        }
+      }
+
+      // Sort entries by date ascending
+      return entries.sort((a, b) => new Date(a.date) - new Date(b.date));
+    }
+
+    function renderChart(range) {
+      const data = loadPointsData();
+      let filtered = data;
+
+      if (range !== 'all') {
+        const daysAgo = new Date();
+        daysAgo.setDate(daysAgo.getDate() - range);
+        filtered = data.filter(entry => new Date(entry.date) >= daysAgo);
+      }
+
+      const labels = filtered.map(e => e.date);
+      const values = filtered.map(e => e.value);
+
+      const ctx = document.getElementById('pointsChart').getContext('2d');
+
+      if (chart) chart.destroy();
+
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Total Points per Day',
+            data: values,
+            borderColor: '#4CAF50',
+            backgroundColor: 'rgba(76, 175, 80, 0.3)',
+            tension: 0.3,
+            pointRadius: 4,
+            pointBackgroundColor: '#a5d6a7',
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          aspectRatio: 2,
+          plugins: {
+            legend: { labels: { color: 'white' } },
+            tooltip: { enabled: true }
+          },
+          scales: {
+            x: {
+              ticks: { color: 'white' },
+              grid: { color: '#444' }
+            },
+            y: {
+              beginAtZero: true,
+              ticks: { color: 'white' },
+              grid: { color: '#444' }
+            }
           }
         }
       });
-
-      // Sort by date
-      const combined = labels.map((label, i) => ({ label, value: points[i] }))
-        .sort((a, b) => new Date(a.label) - new Date(b.label));
-
-      return {
-        labels: combined.map(i => i.label),
-        data: combined.map(i => i.value)
-      };
     }
 
-    const { labels, data } = loadPointsData();
-
-    const ctx = document.getElementById('pointsChart').getContext('2d');
-    new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [{
-          label: 'Total Points per Day',
-          data,
-          borderColor: '#4CAF50',
-          backgroundColor: 'rgba(76, 175, 80, 0.3)',
-          tension: 0.3,
-          pointRadius: 5,
-          pointBackgroundColor: '#a5d6a7',
-        }]
-      },
-      options: {
-  responsive: true,
-  maintainAspectRatio: true,
-  aspectRatio: 2,
-  plugins: {
-    zoom: {
-      pan: {
-        enabled: true,
-        mode: 'x',
-        threshold: 10
-      },
-      zoom: {
-        wheel: {
-          enabled: true,
-          speed: 0.05, // slower zoom
-        },
-        pinch: {
-          enabled: true
-        },
-        mode: 'x',
-        limits: {
-          x: {
-            minRange: 3, // minimum visible range (in days)
-            maxRange: 30 // maximum visible range (prevents zooming in too far or too far out)
-          }
-        }
-      }
-    },
-    legend: {
-      labels: {
-        color: 'white'
-      }
-    },
-    tooltip: {
-      enabled: true
-    }
-  },
-  scales: {
-    x: {
-      ticks: {
-        color: 'white'
-      },
-      grid: {
-        color: '#444'
-      }
-    },
-    y: {
-      beginAtZero: true,
-      ticks: {
-        color: 'white'
-      },
-      grid: {
-        color: '#444'
-      }
-    }
-  }
-}
-
-    });
+    // Initial load
+    renderChart('all');
 </script>
+
+<script src="common.js"></script>
 
 </body>
 </html>

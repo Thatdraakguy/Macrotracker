@@ -3,15 +3,17 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="common.css" />
     <title>Water Tracker</title>
     <style>
+        /* Je CSS blijft zoals het is */
         body {
           font-family: sans-serif;
           background: #121212;
           color: white;
           padding: 20px;
         }
-
+        h1 { margin-bottom: 20px; }
         input[type="number"] {
           padding: 10px;
           font-size: 1.2rem;
@@ -20,8 +22,10 @@
           border-radius: 6px;
           border: none;
           outline: none;
+          background: #1e1e1e;
+          color: white;
         }
-
+        input[type="number"]::placeholder { color: #888; }
         button {
           padding: 10px 16px;
           font-size: 1rem;
@@ -30,26 +34,14 @@
           background: #4caf50;
           color: white;
           cursor: pointer;
+          transition: background 0.3s ease;
         }
-
+        button:hover { background: #81c784; }
         .total {
-          margin-top: 20px;
-          font-size: 1.4rem;
-        .nav {
           margin-top: 30px;
+          font-size: 1.5rem;
+          font-weight: bold;
         }
-
-        .nav a {
-          color: #4CAF50;
-          text-decoration: none;
-          margin-right: 10px;
-        }
-
-        .nav a:hover {
-          text-decoration: underline;
-        }
-
-        /* Bottom nav */
         nav.bottom-nav {
           position: fixed;
           bottom: 0;
@@ -61,161 +53,94 @@
           justify-content: space-around;
           align-items: center;
           border-top: 2px solid #252525;
-          box-shadow: 0 -2px 8px rgba(0,0,0,0.7);
+          box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.7);
           z-index: 1000;
         }
-
         nav.bottom-nav a {
           flex: 1;
           display: flex;
           justify-content: center;
           align-items: center;
         }
-
         nav.bottom-nav img {
           width: 50px;
-          cursor: pointer;
         }
-
-        /* Log button container - to position above the nav */
-        .log-btn-container {
-          position: fixed;
-          bottom: 80px; /* just above nav bar */
-          left: 48%;
-          z-index: 1100;
-        }
-
-        /* Log button itself */
-        .log-btn {
-          width: 56px;
-          height: 56px;
-          left: -40%;
-          border-radius: 50%;
-          background: #4caf50; /* dark lime green */
-          box-shadow: 0 0 100px #66bb6a;
-          border: 2px solid #2e7d32;
-          color: white;
-          font-size: 30px;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          cursor: pointer;
-          user-select: none;
-          transition: background 0.3s ease;
-          position: relative;
-        }
-        .log-btn:hover {
-          background: #81c784;
-          box-shadow: 0 0 15px #a5d6a7;
-        }
-
-        /* Tooltip / popup window */
-        .log-popup {
-          position: absolute;
-          bottom: 72px;
-          left: 20%;
-          right: 20%;
-          transform: translateX(-50%);
-          background: #333;
-          padding: 12px 16px;
-          border-radius: 6px;
-          box-shadow: 0 0 10px rgba(0,0,0,0.8);
-          color: #a5d6a7;
-          font-size: 0.9rem;
-          white-space: nowrap;
-          user-select: none;
-          opacity: 0;
-          pointer-events: none;
-          transition: opacity 0.3s ease;
-          width: max-content;
-          text-align: center;
-          z-index: 1200;
-        }
-
-        /* Show popup on hover for desktop */
-        .log-btn-container:hover .log-popup {
-          opacity: 1;
-          pointer-events: auto;
-        }
-
-        /* Show popup on active class (for click toggle) */
-        .log-btn-container.active .log-popup {
-          opacity: 1;
-          pointer-events: auto;
-        }
-
     </style>
 </head>
 <body>
 
 <h1>🚰 Water Tracker</h1>
 
-<input type="number" id="waterInput" placeholder="ml" />
-<button onclick="logWater()">Add</button>
+<label for="waterInput" class="visually-hidden">Water amount in ml</label>
+<input type="number" id="waterInput" placeholder="ml" min="1" />
+<button>Add</button>
 
 <div class="total" id="totalToday">Today's total: 0 ml</div>
 
+<!-- Bottom Navigation -->
+<nav class="bottom-nav" role="navigation" aria-label="Main navigation">
+    <a href="habits.html"><img src="images/Onriselogo.png" alt="Habits" width="50"></a>
+    <a href="index.html"><img src="images/goldencarrotblackbg.jpg" alt="Dashboard" width="50"></a>
+    <a href="settings.html"><img src="images/Settingsblackpng.png" alt="Settings" width="50"></a>
+</nav>
+
 <script>
+
     function getTodayKey() {
       const now = new Date();
       return `water_${now.toISOString().split('T')[0]}`;
     }
 
-    function getWaterEntries() {
-      const key = getTodayKey();
-      return JSON.parse(localStorage.getItem(key)) || [];
-    }
+    function getTotal() {
+  const key = getTodayKey();
+  const saved = localStorage.getItem(key);
+  const parsed = parseInt(saved, 10);
+  if (isNaN(parsed)) {
+    return 0;
+  }
+  return parsed;
+}
 
-    function saveWaterEntries(entries) {
-      const key = getTodayKey();
-      localStorage.setItem(key, JSON.stringify(entries));
+
+    function saveTotal(total) {
+  if (isNaN(total)) {
+    console.error('Tried to save NaN total!');
+    total = 0; // or handle gracefully
+  }
+  const key = getTodayKey();
+  localStorage.setItem(key, total);
+}
+
+
+    function updateTotal() {
+      const total = getTotal();
+      document.getElementById('totalToday').textContent = `Today's total: ${total} ml`;
     }
 
     function logWater() {
       const input = document.getElementById('waterInput');
       const amount = parseInt(input.value, 10);
-      if (!amount || amount <= 0) return alert("Enter a valid amount!");
 
-      const entries = getWaterEntries();
-      entries.push(amount);
-      saveWaterEntries(entries);
+      if (!amount || amount <= 0) {
+        alert("Please enter a valid positive amount!");
+        return;
+      }
+
+      let total = getTotal();
+      total += amount;
+      saveTotal(total);
+
       input.value = '';
       updateTotal();
+
+      console.log('Logged water amount:', amount, 'New total:', total);
     }
 
-    function updateTotal() {
-      const entries = getWaterEntries();
-      const total = entries.reduce((sum, val) => sum + val, 0);
-      document.getElementById('totalToday').textContent = `Today's total: ${total} ml`;
-    }
-
-    window.addEventListener('DOMContentLoaded', updateTotal);
+    window.addEventListener('DOMContentLoaded', () => {
+      updateTotal();
+      document.querySelector('button').addEventListener('click', logWater);
+    });
 </script>
-<div class="log-btn-container" id="logBtnContainer" tabindex="0" aria-label="Open logging options">
-    <div class="log-btn" id="logBtn" role="button" aria-pressed="false" tabindex="0" title="Logging features">✍️</div>
-    <div class="log-popup" id="logPopup">
-        <strong>Log Feature</strong>
-        <div class="popup-buttons">
-            <button class="popup-btn">📷 Take Photo</button>
-            <button class="popup-btn">💧 Water</button>
-            <button class="popup-btn">✍️ Manual Entry</button>
-            <button class="popup-btn">⚖️ Log Weight</button>
-        </div>
-    </div>
 
-</div>
-
-<!--&lt;!&ndash; Bottom nav bar &ndash;&gt;-->
-<nav class="bottom-nav" role="navigation" aria-label="Main navigation">
-    <a href="habits.html" aria-label="Go to Habits page">
-        <img src="images/Onriselogo.png" alt="Onrise" width="50">
-    </a>
-    <a href="index.html" aria-label="Go to Dashboard page">
-        <img src="images/goldencarrotblackbg.jpg" alt="Golden carrot" width="50">
-    </a>
-    <a href="settings.html" aria-label="Go to Settings page">
-        <img src="images/Settingsblackpng.png" alt="Settings" width="50">
-    </a>
-</nav>
 </body>
 </html>

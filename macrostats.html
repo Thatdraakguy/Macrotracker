@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="stylesheet" href="common.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Water Intake Stats</title>
+    <title>Macro Stats</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
@@ -17,19 +17,13 @@
 
         h1 {
           text-align: center;
-          margin-bottom: 40px;
-        }
-
-        .chart-container {
-          background: #1e1e1e;
-          border-radius: 8px;
-          padding: 10px;
-          height: 300px;
+          margin-bottom: 20px;
         }
 
         canvas {
-          width: 100% !important;
-          height: 100% !important;
+          background: #1e1e1e;
+          border-radius: 8px;
+          padding: 10px;
         }
 
         .filter-buttons {
@@ -51,37 +45,11 @@
         .filter-buttons button:hover {
           background-color: #555;
         }
-
-        nav.bottom-nav {
-          position: fixed;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          height: 60px;
-          background: #3a3a3a;
-          display: flex;
-          justify-content: space-around;
-          align-items: center;
-          border-top: 2px solid #252525;
-          box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.7);
-          z-index: 1000;
-        }
-
-        nav.bottom-nav a {
-          flex: 1;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
-
-        nav.bottom-nav img {
-          width: 50px;
-        }
     </style>
 </head>
 <body>
 
-<h1>Your Water Intake</h1>
+<h1>Your Water Intake History 💦</h1>
 
 <div class="filter-buttons">
     <button onclick="renderChart(7)">7 Days</button>
@@ -91,6 +59,20 @@
 
 <div class="chart-container">
     <canvas id="waterChart"></canvas>
+</div>
+
+<!-- Floating Log Button -->
+<div class="log-btn-container" id="logBtnContainer" tabindex="0" aria-label="Open logging options">
+    <div class="log-btn" id="logBtn" role="button" aria-pressed="false" tabindex="0" title="Logging features">✍️</div>
+    <div class="log-popup" id="logPopup">
+        <strong>Log Feature</strong>
+        <div class="popup-buttons">
+            <button class="popup-btn" id="photoBtn">📷 Take Photo</button>
+            <button class="popup-btn" id="waterBtn">💧 Water</button>
+            <button class="popup-btn" id="manualBtn">✍️ Manual Entry</button>
+            <button class="popup-btn" id="weightBtn">⚖️ Log Weight</button>
+        </div>
+    </div>
 </div>
 
 <!-- Bottom Navigation -->
@@ -108,9 +90,7 @@
 
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-
-        // Only use total water keys (e.g., water_2025-06-23), skip "_entries"
-        if (key.startsWith('water_') && !key.includes('_entries')) {
+        if (key.startsWith('water_')) {
           const date = key.replace('water_', '');
           const value = parseInt(localStorage.getItem(key), 10);
           if (!isNaN(value)) {
@@ -119,7 +99,7 @@
         }
       }
 
-      // Sort by date ascending
+      // Sort by date
       return entries.sort((a, b) => new Date(a.date) - new Date(b.date));
     }
 
@@ -128,9 +108,9 @@
       let filtered = data;
 
       if (range !== 'all') {
-        const cutoff = new Date();
-        cutoff.setDate(cutoff.getDate() - range);
-        filtered = data.filter(entry => new Date(entry.date) >= cutoff);
+        const daysAgo = new Date();
+        daysAgo.setDate(daysAgo.getDate() - range);
+        filtered = data.filter(entry => new Date(entry.date) >= daysAgo);
       }
 
       const labels = filtered.map(e => e.date);
@@ -146,19 +126,26 @@
           datasets: [{
             label: 'Water Intake (ml)',
             data: values,
-            borderColor: '#2196F3',
-            backgroundColor: 'rgba(33, 150, 243, 0.3)',
+            borderColor: '#4CAF50',
+            backgroundColor: 'rgba(76, 175, 80, 0.2)',
             tension: 0.3,
             pointRadius: 4,
-            pointBackgroundColor: '#90caf9',
+            pointBackgroundColor: '#a5d6a7',
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          aspectRatio: 2,
           plugins: {
-            legend: { labels: { color: 'white' } },
-            tooltip: { enabled: true }
+            legend: {
+              labels: {
+                color: 'white'
+              }
+            },
+            tooltip: {
+              enabled: true
+            }
           },
           scales: {
             x: {
@@ -175,8 +162,8 @@
       });
     }
 
-    // Initial chart load
-    renderChart('all');
+    // Initial load: last 30 days
+    renderChart(30);
 </script>
 
 <script src="common.js"></script>

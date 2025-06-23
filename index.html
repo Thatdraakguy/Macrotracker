@@ -1,43 +1,69 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" >
 <head>
+    <link rel="stylesheet" href="common.css" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Macro Tracker</title>
-    <link rel="stylesheet" href="style.css" />
+    <style>
+        body {
+          font-family: sans-serif;
+          background: #121212;
+          color: white;
+          padding: 20px;
+        }
+
+        .habit {
+          padding: 10px 20px;
+          margin: 10px 0;
+          background: #1e1e1e;
+          border-left: 6px solid #4CAF50;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .habit.done {
+          background: #2e7d32;
+          text-decoration: line-through;
+        }
+
+        .habit:hover {
+          opacity: 0.8;
+        }
+
+        .nav {
+          margin-top: 30px;
+        }
+
+        .nav a {
+          color: #4CAF50;
+          text-decoration: none;
+          margin-right: 10px;
+        }
+
+        .nav a:hover {
+          text-decoration: underline;
+        }
+
+
+    </style>
 </head>
 <body>
 
 <main id="mainContent">
     <!-- Dashboard Section -->
     <section id="dashboardPage">
-        <h1>Dashboard</h1>
+        <h1>Macrotracker(later)</h1>
         <p>This is your dashboard content area.</p>
     </section>
 
-    <!-- Habits Section -->
-    <section id="habitsPage" style="display: none;">
-        <h1>Habits</h1>
-        <div id="habitGrid"></div>
-    </section>
 
-    <!-- Settings Section -->
-    <section id="settingsPage" style="display: none;">
-        <h1>Settings</h1>
-        <form id="habitForm">
-            <input type="text" id="habitName" placeholder="New habit name" required />
-            <input type="color" id="habitColor" value="#81c784" />
-            <button type="submit">Add Habit</button>
-        </form>
-        <ul id="habitListSettings"></ul>
-    </section>
 </main>
 
-<!-- Nav + Log Button Placeholder -->
-<div id="common-nav-placeholder"></div>
 
 <script>
-    // Show a specific page
+
+        // ✅ ADD THIS FUNCTION — it's missing!
     function showPage(pageId) {
       const sections = document.querySelectorAll('main > section');
       sections.forEach(section => {
@@ -45,38 +71,40 @@
       });
     }
 
-    // Load the default page
-    window.addEventListener('DOMContentLoaded', () => {
-      showPage('dashboardPage');
-
-      // Load common nav
-      fetch('common-nav.html')
-        .then(res => res.text())
-        .then(html => {
-          document.getElementById('common-nav-placeholder').innerHTML = html;
-
-          // Add log button toggle behavior
-          const logBtnContainer = document.getElementById('logBtnContainer');
-          const logBtn = document.getElementById('logBtn');
-
-          if (logBtn && logBtnContainer) {
-            logBtn.addEventListener('click', () => {
-              logBtnContainer.classList.toggle('active');
-              const pressed = logBtn.getAttribute('aria-pressed') === 'true';
-              logBtn.setAttribute('aria-pressed', String(!pressed));
-            });
-
-            document.addEventListener('click', (e) => {
-              if (!logBtnContainer.contains(e.target)) {
-                logBtnContainer.classList.remove('active');
-                logBtn.setAttribute('aria-pressed', 'false');
-              }
-            });
-          }
-        })
-        .catch(err => console.error('Failed to load common-nav.html:', err));
-    });
+    // ✅ Optional: Load dashboard first
+    window.addEventListener('DOMContentLoaded', () => showPage('dashboardPage'));
 </script>
 
+
+<script src="common.js"></script>
+<!-- Floating Log Button -->
+<div class="log-btn-container" id="logBtnContainer" tabindex="0" aria-label="Open logging options">
+    <div class="log-btn" id="logBtn" role="button" aria-pressed="false" tabindex="0" title="Logging features">✍️</div>
+    <div class="log-popup" id="logPopup">
+        <strong>Log Feature</strong>
+        <div class="popup-buttons">
+            <button class="popup-btn" id="photoBtn">📷 Take Photo</button>
+            <button class="popup-btn" id="waterBtn">💧 Water</button>
+            <button class="popup-btn" id="manualBtn">✍️ Manual Entry</button>
+            <button class="popup-btn" id="weightBtn">⚖️ Log Weight</button>
+
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Navigation Bar -->
+<nav class="bottom-nav" role="navigation" aria-label="Main navigation">
+    <a href="habits.html" aria-label="Go to Habits page">
+        <img src="images/Onriselogo.png" alt="Onrise" width="50">
+    </a>
+    <a href="index.html" aria-label="Go to Dashboard page">
+        <img src="images/goldencarrotblackbg.jpg" alt="Golden carrot" width="50">
+    </a>
+    <a href="settings.html" aria-label="Go to Settings page">
+        <img src="images/Settingsblackpng.png" alt="Settings" width="50">
+    </a>
+</nav>
+
 </body>
+
 </html>

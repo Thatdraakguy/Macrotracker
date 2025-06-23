@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
+    <link rel="stylesheet" href="common.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Settings</title>
     <style>
@@ -39,101 +40,14 @@
           opacity: 0.8;
         }
 
-        .nav {
-          margin-top: 30px;
-        }
 
-        /* Bottom nav */
-        nav.bottom-nav {
-          position: fixed;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          height: 60px;
-          background: #3a3a3a;
-          display: flex;
-          justify-content: space-around;
-          align-items: center;
-          border-top: 2px solid #252525;
-          box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.7);
-          z-index: 1000;
-        }
-
-        nav.bottom-nav a {
-          flex: 1;
-          text-align: center;
-        }
-
-        nav.bottom-nav img {
-          width: 50px;
-        }
-
-        /* Log button container */
-        .log-btn-container {
-          position: fixed;
-          bottom: 80px;
-          left: 48%;
-          z-index: 1100;
-        }
-
-        .log-btn {
-          width: 56px;
-          height: 56px;
-          left: -40%;
-          border-radius: 50%;
-          background: #4caf50;
-          box-shadow: 0 0 100px #66bb6a;
-          border: 2px solid #2e7d32;
-          color: white;
-          font-size: 30px;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          cursor: pointer;
-          user-select: none;
-          transition: background 0.3s ease;
-          position: relative;
-        }
-
-        .log-btn:hover {
-          background: #81c784;
-          box-shadow: 0 0 15px #a5d6a7;
-        }
-
-        .log-popup {
-          position: absolute;
-          bottom: 72px;
-          left: 20%;
-          right: 20%;
-          transform: translateX(-50%);
-          background: #333;
-          padding: 12px 16px;
-          border-radius: 8px;
-          box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
-          color: #a5d6a7;
-          font-size: 0.9rem;
-          white-space: nowrap;
-          user-select: none;
-          opacity: 0;
-          pointer-events: none;
-          transition: opacity 0.3s ease;
-          width: max-content;
-          text-align: center;
-          z-index: 1200;
-        }
-
-        .log-btn-container:hover .log-popup,
-        .log-btn-container.active .log-popup {
-          opacity: 1;
-          pointer-events: auto;
-        }
     </style>
 </head>
 <body>
 <h1>Settings</h1>
 
 <div class="section">
-    <label for="modeToggle">🌗 Dark/Light Mode (coming soon)</label><br>
+    <label for="modeToggle">🌗 Dark/Light Mode (NOT coming soon wait a couple of years)</label><br>
     <input type="checkbox" id="modeToggle" />
 </div>
 
@@ -142,47 +56,43 @@
         📊 Habit Stats
     </a>
 </div>
+<div class="section">
+    <a href="waterstats.html" class="habit stats-button">
+        📊 Water Stats
+    </a>
+</div>
+<div class="section">
+    <a href="weightstats.html" class="habit stats-button">
+        📊 Weight Stats
+    </a>
+</div>
+<div class="section">
+    <a href="macrostats.html" class="habit stats-button">
+        📊 Macro Stats
+    </a>
+</div>
 
-<!-- Log button -->
+
 <div class="log-btn-container" id="logBtnContainer" tabindex="0" aria-label="Open logging options">
     <div class="log-btn" id="logBtn" role="button" aria-pressed="false" tabindex="0" title="Logging features">✍️</div>
-    <div class="popup-buttons">
-    <button class="popup-btn">📷 Take Photo</button>
-    <button class="popup-btn">💧 Water</button>
-    <button class="popup-btn">✍️ Manual Entry</button>
-    <button class="popup-btn">⚖️ Log Weight</button>
-</div>
+    <div class="log-popup" id="logPopup">
+        <strong>Log Feature</strong>
+        <div class="popup-buttons">
+            <button class="popup-btn" id="photoBtn">📷 Take Photo</button>
+            <button class="popup-btn" id="waterBtn">💧 Water</button>
+            <button class="popup-btn" id="manualBtn">✍️ Manual Entry</button>
+            <button class="popup-btn" id="weightBtn">⚖️ Log Weight</button>
+        </div>
+    </div>
+
 </div>
 
-<!-- Bottom nav -->
+<!-- Bottom Navigation -->
 <nav class="bottom-nav" role="navigation" aria-label="Main navigation">
-    <a href="habits.html" aria-label="Go to Habits page">
-        <img src="images/Onriselogo.png" alt="Onrise">
-    </a>
-    <a href="index.html" aria-label="Go to Dashboard page">
-        <img src="images/goldencarrotblackbg.jpg" alt="Golden carrot">
-    </a>
-    <a href="settings.html" aria-label="Go to Settings page">
-        <img src="images/Settingsblackpng.png" alt="Settings">
-    </a>
+    <a href="habits.html"><img src="images/Onriselogo.png" alt="Habits"></a>
+    <a href="index.html"><img src="images/goldencarrotblackbg.jpg" alt="Dashboard"></a>
+    <a href="settings.html"><img src="images/Settingsblackpng.png" alt="Settings"></a>
 </nav>
-
-<script>
-    const logBtnContainer = document.getElementById('logBtnContainer');
-    const logBtn = document.getElementById('logBtn');
-
-    logBtn.addEventListener('click', () => {
-      logBtnContainer.classList.toggle('active');
-      const pressed = logBtn.getAttribute('aria-pressed') === 'true';
-      logBtn.setAttribute('aria-pressed', String(!pressed));
-    });
-
-    document.addEventListener('click', (e) => {
-      if (!logBtnContainer.contains(e.target)) {
-        logBtnContainer.classList.remove('active');
-        logBtn.setAttribute('aria-pressed', 'false');
-      }
-    });
-</script>
+<script src="common.js"></script>
 </body>
 </html>

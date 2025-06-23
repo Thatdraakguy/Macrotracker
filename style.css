@@ -140,6 +140,7 @@ main {
   bottom: 80px;
   left: 48%;
   z-index: 1100;
+  padding-bottom: 80px; /* add extra padding so popup stays inside hover area */
 }
 
 .log-btn {
