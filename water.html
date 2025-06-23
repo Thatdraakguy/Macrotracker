@@ -74,6 +74,7 @@
 <label for="waterInput" class="visually-hidden">Water amount in ml</label>
 <input type="number" id="waterInput" placeholder="ml" min="1" />
 <button>Add</button>
+<button onclick="resetToday()">Reset</button>
 
 <div class="total" id="totalToday">Today's total: 0 ml</div>
 
@@ -85,36 +86,42 @@
 </nav>
 
 <script>
-
     function getTodayKey() {
       const now = new Date();
       return `water_${now.toISOString().split('T')[0]}`;
     }
 
     function getTotal() {
-  const key = getTodayKey();
-  const saved = localStorage.getItem(key);
-  const parsed = parseInt(saved, 10);
-  if (isNaN(parsed)) {
-    return 0;
-  }
-  return parsed;
-}
-
+      const key = getTodayKey();
+      const saved = localStorage.getItem(key);
+      if (saved === null || saved === "null") {
+        return null;  // no water logged yet
+      }
+      const parsed = parseInt(saved, 10);
+      return isNaN(parsed) ? null : parsed;
+    }
 
     function saveTotal(total) {
-  if (isNaN(total)) {
-    console.error('Tried to save NaN total!');
-    total = 0; // or handle gracefully
-  }
-  const key = getTodayKey();
-  localStorage.setItem(key, total);
-}
+      const key = getTodayKey();
+      if (total === null) {
+        localStorage.setItem(key, "null");
+      } else if (isNaN(total)) {
+        console.error('Tried to save NaN total!');
+        localStorage.setItem(key, "null");
+      } else {
+        localStorage.setItem(key, total);
+      }
+    }
 
+    function resetToday() {
+      saveTotal(null);
+      updateTotal();
+      alert("Today's water total has been reset!");
+    }
 
     function updateTotal() {
       const total = getTotal();
-      document.getElementById('totalToday').textContent = `Today's total: ${total} ml`;
+      document.getElementById('totalToday').textContent = `Today's total: ${total === null ? 0 : total} ml`;
     }
 
     function logWater() {
@@ -127,6 +134,7 @@
       }
 
       let total = getTotal();
+      if (total === null) total = 0;
       total += amount;
       saveTotal(total);
 

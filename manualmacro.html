@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Manual Macro Tracker</title>
+    <style>
+        body {
+          font-family: sans-serif;
+          background: #121212;
+          color: white;
+          padding: 20px;
+        }
+        input, button {
+          padding: 10px;
+          font-size: 1rem;
+          margin: 10px 0;
+          width: 100%;
+          max-width: 400px;
+        }
+        #output {
+          margin-top: 20px;
+          background: #1e1e1e;
+          padding: 20px;
+          border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Manual Macro Tracker (AI Style)</h1>
+
+<p>Enter your food and amount like: <em>cooked chicken 200g</em> or <em>cooked rice 150g</em></p>
+
+<input type="text" id="foodInput" placeholder="Type food + amount..." />
+<button id="addFoodBtn">Add Food</button>
+
+<div id="output">
+    <h2>Your Logged Foods</h2>
+    <ul id="foodList"></ul>
+    <h3>Total Macros</h3>
+    <p id="totals">Calories: 0 kcal | Protein: 0g | Carbs: 0g | Fat: 0g</p>
+</div>
+
+<script>
+    // Fake "AI" database (for real, replace with API calls)
+    const foodDB = {
+      "cooked chicken": { calories: 165, protein: 31, carbs: 0, fat: 3.6 }, // per 100g
+      "cooked rice": { calories: 130, protein: 2.7, carbs: 28, fat: 0.3 },
+      "banana": { calories: 89, protein: 1.1, carbs: 23, fat: 0.3 },
+      "apple": { calories: 52, protein: 0.3, carbs: 14, fat: 0.2 },
+      // add more here bruh
+    };
+
+    const foodList = [];
+    const foodListEl = document.getElementById('foodList');
+    const totalsEl = document.getElementById('totals');
+
+    function parseInput(input) {
+      // expects something like "cooked chicken 200g"
+      const regex = /(.+?)\s+(\d+)\s*g/i;
+      const match = input.match(regex);
+      if (!match) return null;
+      return { food: match[1].toLowerCase().trim(), grams: Number(match[2]) };
+    }
+
+    function addFood(input) {
+      const parsed = parseInput(input);
+      if (!parsed) {
+        alert("Yo, type it like: 'foodname amountg', e.g. cooked chicken 200g");
+        return;
+      }
+
+      if (!foodDB[parsed.food]) {
+        alert(`No data for "${parsed.food}". Try something else or add it to database.`);
+        return;
+      }
+
+      // Calculate macros for grams
+      const base = foodDB[parsed.food];
+      const factor = parsed.grams / 100;
+
+      const entry = {
+        name: parsed.food,
+        grams: parsed.grams,
+        calories: (base.calories * factor).toFixed(1),
+        protein: (base.protein * factor).toFixed(1),
+        carbs: (base.carbs * factor).toFixed(1),
+        fat: (base.fat * factor).toFixed(1),
+      };
+
+      foodList.push(entry);
+      renderList();
+    }
+
+    function renderList() {
+      foodListEl.innerHTML = '';
+      let totalCalories = 0, totalProtein = 0, totalCarbs = 0, totalFat = 0;
+
+      foodList.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = `${item.name} - ${item.grams}g | Calories: ${item.calories} kcal, Protein: ${item.protein}g, Carbs: ${item.carbs}g, Fat: ${item.fat}g`;
+        foodListEl.appendChild(li);
+
+        totalCalories += parseFloat(item.calories);
+        totalProtein += parseFloat(item.protein);
+        totalCarbs += parseFloat(item.carbs);
+        totalFat += parseFloat(item.fat);
+      });
+
+      totalsEl.textContent = `Calories: ${totalCalories.toFixed(1)} kcal | Protein: ${totalProtein.toFixed(1)}g | Carbs: ${totalCarbs.toFixed(1)}g | Fat: ${totalFat.toFixed(1)}g`;
+    }
+
+    document.getElementById('addFoodBtn').addEventListener('click', () => {
+      const input = document.getElementById('foodInput').value;
+      addFood(input);
+      document.getElementById('foodInput').value = '';
+    });
+
+    // Optional: enter key to add food too
+    document.getElementById('foodInput').addEventListener('keypress', (e) => {
+      if(e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('addFoodBtn').click();
+      }
+    });
+</script>
+
+</body>
+</html>
