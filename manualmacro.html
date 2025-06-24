@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet" href="common.css" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Manual Macro Tracker</title>
+    <title>Manual Macro Tracker - AI Powered</title>
     <style>
         body {
           font-family: sans-serif;
@@ -24,15 +25,24 @@
           padding: 20px;
           border-radius: 8px;
         }
+        .visually-hidden {
+          position: absolute !important;
+          height: 1px;
+          width: 1px;
+          overflow: hidden;
+          clip: rect(1px, 1px, 1px, 1px);
+          white-space: nowrap;
+        }
     </style>
 </head>
 <body>
 
-<h1>Manual Macro Tracker (AI Style)</h1>
+<h1>Manual Macro Tracker </h1>
 
-<p>Enter your food and amount like: <em>cooked chicken 200g</em> or <em>cooked rice 150g</em></p>
 
-<input type="text" id="foodInput" placeholder="Type food + amount..." />
+
+<label for="foodInput" class="visually-hidden">Enter food and amount</label>
+<input type="text" id="foodInput" placeholder="Type food + amount here..." aria-label="Food and amount input" />
 <button id="addFoodBtn">Add Food</button>
 
 <div id="output">
@@ -43,88 +53,170 @@
 </div>
 
 <script>
-    // Fake "AI" database (for real, replace with API calls)
-    const foodDB = {
-      "cooked chicken": { calories: 165, protein: 31, carbs: 0, fat: 3.6 }, // per 100g
-      "cooked rice": { calories: 130, protein: 2.7, carbs: 28, fat: 0.3 },
-      "banana": { calories: 89, protein: 1.1, carbs: 23, fat: 0.3 },
-      "apple": { calories: 52, protein: 0.3, carbs: 14, fat: 0.2 },
-      // add more here bruh
-    };
-
     const foodList = [];
     const foodListEl = document.getElementById('foodList');
     const totalsEl = document.getElementById('totals');
 
-    function parseInput(input) {
-      // expects something like "cooked chicken 200g"
-      const regex = /(.+?)\s+(\d+)\s*g/i;
-      const match = input.match(regex);
-      if (!match) return null;
-      return { food: match[1].toLowerCase().trim(), grams: Number(match[2]) };
+    // Your real Nutritionix app ID and key here 👇
+    const NUTRITIONIX_APP_ID = 'd4b13843';
+    const NUTRITIONIX_API_KEY = '58598fcb53d06919c602f3e6472cc35c';
+
+    async function getNutritionData(query) {
+      const url = 'https://trackapi.nutritionix.com/v2/natural/nutrients';
+      console.log('🚀 Sending request to Nutritionix API with query:', query);
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-app-id': NUTRITIONIX_APP_ID,
+            'x-app-key': NUTRITIONIX_API_KEY
+          },
+          body: JSON.stringify({ query })
+        });
+
+        console.log('📡 Response status:', response.status);
+
+        if (!response.ok) {
+          throw new Error('API error: ' + response.status);
+        }
+
+        const data = await response.json();
+        console.log('✅ Received data from API:', data);
+        return data.foods; // array of foods with macros
+      } catch (error) {
+        console.error('🔥 API request failed:', error);
+        alert('Yo, something went wrong with Nutritionix API: ' + error.message);
+        return null;
+      }
     }
 
-    function addFood(input) {
-      const parsed = parseInput(input);
-      if (!parsed) {
-        alert("Yo, type it like: 'foodname amountg', e.g. cooked chicken 200g");
-        return;
-      }
+    function saveFoodList(list) {
+      localStorage.setItem('foodList', JSON.stringify(list));
+    }
 
-      if (!foodDB[parsed.food]) {
-        alert(`No data for "${parsed.food}". Try something else or add it to database.`);
-        return;
-      }
-
-      // Calculate macros for grams
-      const base = foodDB[parsed.food];
-      const factor = parsed.grams / 100;
-
-      const entry = {
-        name: parsed.food,
-        grams: parsed.grams,
-        calories: (base.calories * factor).toFixed(1),
-        protein: (base.protein * factor).toFixed(1),
-        carbs: (base.carbs * factor).toFixed(1),
-        fat: (base.fat * factor).toFixed(1),
-      };
-
-      foodList.push(entry);
-      renderList();
+    function loadFoodList() {
+      const saved = localStorage.getItem('foodList');
+      return saved ? JSON.parse(saved) : [];
     }
 
     function renderList() {
       foodListEl.innerHTML = '';
       let totalCalories = 0, totalProtein = 0, totalCarbs = 0, totalFat = 0;
+            saveCompactMacros(totalProtein, totalFat, totalCarbs, totalCalories);
+
 
       foodList.forEach(item => {
         const li = document.createElement('li');
-        li.textContent = `${item.name} - ${item.grams}g | Calories: ${item.calories} kcal, Protein: ${item.protein}g, Carbs: ${item.carbs}g, Fat: ${item.fat}g`;
+        li.textContent = `${item.food_name} - ${item.serving_qty} ${item.serving_unit} | Calories: ${item.nf_calories.toFixed(1)} kcal, Protein: ${item.nf_protein.toFixed(1)}g, Carbs: ${item.nf_total_carbohydrate.toFixed(1)}g, Fat: ${item.nf_total_fat.toFixed(1)}g`;
         foodListEl.appendChild(li);
 
-        totalCalories += parseFloat(item.calories);
-        totalProtein += parseFloat(item.protein);
-        totalCarbs += parseFloat(item.carbs);
-        totalFat += parseFloat(item.fat);
+        totalCalories += item.nf_calories;
+        totalProtein += item.nf_protein;
+        totalCarbs += item.nf_total_carbohydrate;
+        totalFat += item.nf_total_fat;
       });
 
       totalsEl.textContent = `Calories: ${totalCalories.toFixed(1)} kcal | Protein: ${totalProtein.toFixed(1)}g | Carbs: ${totalCarbs.toFixed(1)}g | Fat: ${totalFat.toFixed(1)}g`;
+
+      saveFoodList(foodList);
     }
 
-    document.getElementById('addFoodBtn').addEventListener('click', () => {
-      const input = document.getElementById('foodInput').value;
-      addFood(input);
-      document.getElementById('foodInput').value = '';
+    document.getElementById('addFoodBtn').addEventListener('click', async () => {
+      const input = document.getElementById('foodInput').value.trim();
+      if (!input) return alert('Yo, type something before you hit that button!');
+
+      const foods = await getNutritionData(input);
+      if (foods) {
+  foodList.push(...foods);
+  renderList();
+  document.getElementById('foodInput').value = '';
+
+  const totalCalories = foodList.reduce((acc, item) => acc + item.nf_calories, 0);
+  const totalProtein = foodList.reduce((acc, item) => acc + item.nf_protein, 0);
+  const totalFat = foodList.reduce((acc, item) => acc + item.nf_total_fat, 0);
+  const totalCarbs = foodList.reduce((acc, item) => acc + item.nf_total_carbohydrate, 0);
+
+  localStorage.setItem('lastEntry', JSON.stringify({
+    prompt: input,
+    kcal: totalCalories.toFixed(1),
+    protein: totalProtein.toFixed(1),
+    fat: totalFat.toFixed(1),
+    carbs: totalCarbs.toFixed(1)
+  }));
+
+  setTimeout(() => {
+    window.location.href = "macro.html";
+  }, 50);
+}
+
     });
 
-    // Optional: enter key to add food too
     document.getElementById('foodInput').addEventListener('keypress', (e) => {
-      if(e.key === 'Enter') {
+      if (e.key === 'Enter') {
         e.preventDefault();
         document.getElementById('addFoodBtn').click();
       }
     });
-</script>
 
+    // Load saved foods on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedFoods = loadFoodList();
+      if (savedFoods.length) {
+        foodList.push(...savedFoods);
+        renderList();
+      }
+    });
+    function saveCompactMacros(protein, fat, carbs, calories) {
+  const now = new Date();
+  const day = String(now.getDate()).padStart(2, '0');
+  const month = String(now.getMonth() + 1).padStart(2, '0'); // Months start at 0
+  const year = now.getFullYear();
+
+  const compact = `${day} ${month} ${year} ${protein.toFixed(0)}p ${fat.toFixed(0)}f ${carbs.toFixed(0)}c ${calories.toFixed(0)}k`;
+
+  // You can use date as key to avoid duplication
+  const storageKey = `macros-${day}-${month}-${year}`;
+  localStorage.setItem(storageKey, compact);
+  console.log(`📦 Saved: ${storageKey} => ${compact}`);
+}
+localStorage.setItem('macroPrompt', '200g cooked chicken, 200g rice');
+localStorage.setItem('macroData', JSON.stringify({
+  kcal: 600,
+  protein: 40,
+  fat: 15,
+  carbs: 70
+}));
+
+
+</script>
+<script src="common.js"></script>
+<!-- Floating Log Button -->
+<div class="log-btn-container" id="logBtnContainer" tabindex="0" aria-label="Open logging options">
+    <div class="log-btn" id="logBtn" role="button" aria-pressed="false" tabindex="0" title="Logging features">✍️</div>
+    <div class="log-popup" id="logPopup">
+        <strong>Log Feature</strong>
+        <div class="popup-buttons">
+            <button class="popup-btn" id="photoBtn">📷 Take Photo</button>
+            <button class="popup-btn" id="waterBtn">💧 Water</button>
+            <button class="popup-btn" id="manualBtn">✍️ Manual Entry</button>
+            <button class="popup-btn" id="weightBtn">⚖️ Log Weight</button>
+
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Navigation Bar -->
+<nav class="bottom-nav" role="navigation" aria-label="Main navigation">
+    <a href="habits.html" aria-label="Go to Habits page">
+        <img src="images/Onriselogo.png" alt="Onrise" width="50">
+    </a>
+    <a href="index.html" aria-label="Go to Dashboard page">
+        <img src="images/goldencarrotblackbg.jpg" alt="Golden carrot" width="50">
+    </a>
+    <a href="settings.html" aria-label="Go to Settings page">
+        <img src="images/Settingsblackpng.png" alt="Settings" width="50">
+    </a>
+</nav>
 </body>
 </html>

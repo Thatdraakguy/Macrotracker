@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="common.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Change Stats</title>
+    <style>
+        body {
+          font-family: sans-serif;
+          background: #121212;
+          color: white;
+          padding: 20px;
+          max-width: 600px;
+          margin: auto;
+        }
+        h1 {
+          margin-bottom: 20px;
+          text-align: center;
+        }
+        label {
+          display: block;
+          margin-top: 15px;
+          font-weight: bold;
+        }
+        input[type="number"] {
+          width: 100%;
+          padding: 10px;
+          margin-top: 6px;
+          background: #1e1e1e;
+          border: 1px solid #444;
+          border-radius: 6px;
+          color: white;
+          font-size: 1rem;
+        }
+        button {
+          margin-top: 30px;
+          padding: 15px;
+          width: 100%;
+          background: #4b0082;
+          border: none;
+          border-radius: 8px;
+          color: #e0e0ff;
+          font-size: 1.2rem;
+          cursor: pointer;
+          transition: background 0.3s ease;
+           margin-bottom: 100px
+        }
+        button:hover {
+          background: #7f3fff;
+        }
+        .section-title {
+          margin-top: 40px;
+          font-size: 1.4rem;
+              border-bottom: 2px solid #bb86fc;
+          padding-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+<h1>Change Your Goals</h1>
+
+<!-- Macro Goals -->
+<div class="section">
+    <div class="section-title">🍗 Macro Goals</div>
+    <label for="goalCalories">Calories (kcal)</label>
+    <input type="number" id="goalCalories" min="0" placeholder="e.g. 2000" />
+    <label for="goalProtein">Protein (g)</label>
+    <input type="number" id="goalProtein" min="0" placeholder="e.g. 150" />
+    <label for="goalCarbs">Carbs (g)</label>
+    <input type="number" id="goalCarbs" min="0" placeholder="e.g. 250" />
+    <label for="goalFat">Fat (g)</label>
+    <input type="number" id="goalFat" min="0" placeholder="e.g. 70" />
+</div>
+
+
+<!-- Weight Goals -->
+<div class="section">
+    <div class="section-title">⚖️ Weight Goals</div>
+    <label for="weightGoal">Target Weight (kg)</label>
+    <input type="number" id="weightGoal" min="0" placeholder="e.g. 70" />
+</div>
+
+<!-- Water Goals -->
+<div class="section">
+    <div class="section-title"> Habit Goals</div>
+    <label for="habitPointGoal">Daily required </label>
+    <input type="number" id="habitPointGoal" min="0" placeholder="e.g. 15" />
+</div>
+
+<div class="log-btn-container" id="logBtnContainer" tabindex="0" aria-label="Open logging options">
+    <div class="log-btn" id="logBtn" role="button" aria-pressed="false" tabindex="0" title="Logging features">✍️</div>
+    <div class="log-popup" id="logPopup">
+        <strong>Log Feature</strong>
+        <div class="popup-buttons">
+            <button class="popup-btn" id="photoBtn">📷 Take Photo</button>
+            <button class="popup-btn" id="waterBtn">💧 Water</button>
+            <button class="popup-btn" id="manualBtn">✍️ Manual Entry</button>
+            <button class="popup-btn" id="weightBtn">⚖️ Log Weight</button>
+
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Navigation Bar -->
+<nav class="bottom-nav" role="navigation" aria-label="Main navigation">
+    <a href="habits.html" aria-label="Go to Habits page">
+        <img src="images/Onriselogo.png" alt="Onrise" width="50">
+    </a>
+    <a href="index.html" aria-label="Go to Dashboard page">
+        <img src="images/goldencarrotblackbg.jpg" alt="Golden carrot" width="50">
+    </a>
+    <a href="settings.html" aria-label="Go to Settings page">
+        <img src="images/Settingsblackpng.png" alt="Settings" width="50">
+    </a>
+</nav>
+<button id="saveBtn">Save Goals</button>
+
+<script>
+    // keys for localStorage
+    const STORAGE_KEYS = {
+      calories: 'goalCalories',
+      protein: 'goalProtein',
+      carbs: 'goalCarbs',
+      fat: 'goalFat',
+      habitPointGoal: 'habitPointGoal',
+      weightGoal: 'weightGoal',
+      waterGoal: 'waterGoal'
+    };
+
+    // get elements
+    const inputs = {
+      calories: document.getElementById('goalCalories'),
+      protein: document.getElementById('goalProtein'),
+      carbs: document.getElementById('goalCarbs'),
+      fat: document.getElementById('goalFat'),
+      habitPointGoal: document.getElementById('habitPointGoal'),
+      weightGoal: document.getElementById('weightGoal'),
+      waterGoal: document.getElementById('waterGoal'),
+    };
+
+    // Load saved goals from localStorage and populate inputs
+    function loadGoals() {
+      for (const key in STORAGE_KEYS) {
+        const saved = localStorage.getItem(STORAGE_KEYS[key]);
+        if (saved !== null) {
+          inputs[key].value = saved;
+        }
+      }
+    }
+
+    // Save current input values to localStorage
+    function saveGoals() {
+      for (const key in STORAGE_KEYS) {
+        const val = inputs[key].value.trim();
+        if (val === '' || isNaN(val) || Number(val) < 0) {
+          alert(`Yo, check your input for "${key}". Gotta be a positive number fam.`);
+          return false;
+        }
+        localStorage.setItem(STORAGE_KEYS[key], val);
+      }
+      alert('🔥 Goals saved successfully!');
+      return true;
+    }
+
+    document.getElementById('saveBtn').addEventListener('click', () => {
+      if (saveGoals()) {
+        // Optional: redirect or do something after saving
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', loadGoals);
+</script>
+<script src="common.js"></script>
+</body>
+</html>

@@ -62,22 +62,38 @@
 
 
 <script>
+    function loadTodayMacros() {
+      const now = new Date();
+      const day = String(now.getDate()).padStart(2, '0');
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const year = now.getFullYear();
 
-        // ✅ ADD THIS FUNCTION — it's missing!
-    function showPage(pageId) {
-      const sections = document.querySelectorAll('main > section');
-      sections.forEach(section => {
-        section.style.display = (section.id === pageId) ? 'block' : 'none';
-      });
+      const storageKey = `macros-${day}-${month}-${year}`;
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        console.log("🧾 Loaded saved macros:", saved);
+        document.getElementById('summaryBox').textContent = saved;
+      } else {
+        document.getElementById('summaryBox').textContent = 'No macros logged today 💀';
+      }
     }
 
-    // ✅ Optional: Load dashboard first
-    window.addEventListener('DOMContentLoaded', () => showPage('dashboardPage'));
+            // ✅ ADD THIS FUNCTION — it's missing!
+        function showPage(pageId) {
+          const sections = document.querySelectorAll('main > section');
+          sections.forEach(section => {
+            section.style.display = (section.id === pageId) ? 'block' : 'none';
+          });
+        }
+
+        // ✅ Optional: Load dashboard first
+        window.addEventListener('DOMContentLoaded', () => showPage('dashboardPage'));
 </script>
 
 
 <script src="common.js"></script>
 <!-- Floating Log Button -->
+
 <div class="log-btn-container" id="logBtnContainer" tabindex="0" aria-label="Open logging options">
     <div class="log-btn" id="logBtn" role="button" aria-pressed="false" tabindex="0" title="Logging features">✍️</div>
     <div class="log-popup" id="logPopup">

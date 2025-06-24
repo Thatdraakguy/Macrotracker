@@ -34,13 +34,18 @@
           background: #4b0082; /* dark purple */
           border-left: 6px solid #bb86fc;
           color: #e0e0ff;
+          display: block;
+          text-decoration: none;
+          padding: 10px 20px;
+          margin: 10px 0;
+          border-radius: 4px;
+          font-weight: 600;
+          text-align: left;
         }
 
-        .habit:hover {
+        .habit:hover, .stats-button:hover {
           opacity: 0.8;
         }
-
-
     </style>
 </head>
 <body>
@@ -72,6 +77,12 @@
     </a>
 </div>
 
+<!-- New Change Goals Button -->
+<div class="section">
+    <a href="changegoals.html" class="habit stats-button">
+        🎯 Change Goals
+    </a>
+</div>
 
 <div class="log-btn-container" id="logBtnContainer" tabindex="0" aria-label="Open logging options">
     <div class="log-btn" id="logBtn" role="button" aria-pressed="false" tabindex="0" title="Logging features">✍️</div>
@@ -84,14 +95,13 @@
             <button class="popup-btn" id="weightBtn">⚖️ Log Weight</button>
         </div>
     </div>
-
 </div>
 
 <!-- Bottom Navigation -->
 <nav class="bottom-nav" role="navigation" aria-label="Main navigation">
-    <a href="habits.html"><img src="images/Onriselogo.png" alt="Habits"></a>
-    <a href="index.html"><img src="images/goldencarrotblackbg.jpg" alt="Dashboard"></a>
-    <a href="settings.html"><img src="images/Settingsblackpng.png" alt="Settings"></a>
+    <a href="habits.html"><img src="images/Onriselogo.png" alt="Habits" /></a>
+    <a href="index.html"><img src="images/goldencarrotblackbg.jpg" alt="Dashboard" /></a>
+    <a href="settings.html"><img src="images/Settingsblackpng.png" alt="Settings" /></a>
 </nav>
 <script src="common.js"></script>
 </body>
