@@ -83,7 +83,7 @@
 
         const data = await response.json();
         console.log('✅ Received data from API:', data);
-        return data.foods; // array of foods with macros
+        return data.foods;
       } catch (error) {
         console.error('🔥 API request failed:', error);
         alert('Yo, something went wrong with Nutritionix API: ' + error.message);
@@ -137,14 +137,14 @@
   const totalFat = foodList.reduce((acc, item) => acc + item.nf_total_fat, 0);
   const totalCarbs = foodList.reduce((acc, item) => acc + item.nf_total_carbohydrate, 0);
 
-  localStorage.setItem('lastEntry', JSON.stringify({
-    prompt: input,
-    kcal: totalCalories.toFixed(1),
-    protein: totalProtein.toFixed(1),
-    fat: totalFat.toFixed(1),
-    carbs: totalCarbs.toFixed(1)
-  }));
-
+  const lastFood = foods[0]; // Only take the first parsed food from the response
+localStorage.setItem('lastEntry', JSON.stringify({
+  prompt: input,
+  kcal: lastFood.nf_calories.toFixed(1),
+  protein: lastFood.nf_protein.toFixed(1),
+  fat: lastFood.nf_total_fat.toFixed(1),
+  carbs: lastFood.nf_total_carbohydrate.toFixed(1)
+}));
   setTimeout(() => {
     window.location.href = "macro.html";
   }, 50);
@@ -176,7 +176,7 @@
   const compact = `${day} ${month} ${year} ${protein.toFixed(0)}p ${fat.toFixed(0)}f ${carbs.toFixed(0)}c ${calories.toFixed(0)}k`;
 
   // You can use date as key to avoid duplication
-  const storageKey = `macros-${day}-${month}-${year}`;
+  const storageKey = `macros_${day}-${month}-${year}`;
   localStorage.setItem(storageKey, compact);
   console.log(`📦 Saved: ${storageKey} => ${compact}`);
 }

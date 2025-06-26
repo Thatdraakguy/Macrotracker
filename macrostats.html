@@ -49,7 +49,7 @@
 </head>
 <body>
 
-<h1>Your Water Intake History 💦</h1>
+<h1>Your Macro Stats</h1>
 
 <div class="filter-buttons">
     <button onclick="renderChart(7)">7 Days</button>
@@ -62,18 +62,7 @@
 </div>
 
 <!-- Floating Log Button -->
-<div class="log-btn-container" id="logBtnContainer" tabindex="0" aria-label="Open logging options">
-    <div class="log-btn" id="logBtn" role="button" aria-pressed="false" tabindex="0" title="Logging features">✍️</div>
-    <div class="log-popup" id="logPopup">
-        <strong>Log Feature</strong>
-        <div class="popup-buttons">
-            <button class="popup-btn" id="photoBtn">📷 Take Photo</button>
-            <button class="popup-btn" id="waterBtn">💧 Water</button>
-            <button class="popup-btn" id="manualBtn">✍️ Manual Entry</button>
-            <button class="popup-btn" id="weightBtn">⚖️ Log Weight</button>
-        </div>
-    </div>
-</div>
+
 
 <!-- Bottom Navigation -->
 <nav class="bottom-nav" role="navigation" aria-label="Main navigation">
@@ -90,8 +79,8 @@
 
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key.startsWith('water_')) {
-          const date = key.replace('water_', '');
+        if (key.startsWith('Macros_')) {
+          const date = key.replace('Macros', '');
           const value = parseInt(localStorage.getItem(key), 10);
           if (!isNaN(value)) {
             entries.push({ date, value });

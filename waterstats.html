@@ -110,7 +110,7 @@
         const key = localStorage.key(i);
 
         // Only use total water keys (e.g., water_2025-06-23), skip "_entries"
-        if (key.startsWith('water_') && !key.includes('_entries')) {
+        if (key.startsWith('') && !key.includes('_entries')) {
           const date = key.replace('water_', '');
           const value = parseInt(localStorage.getItem(key), 10);
           if (!isNaN(value)) {
