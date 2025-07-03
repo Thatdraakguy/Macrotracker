@@ -45,6 +45,26 @@
         .filter-buttons button:hover {
           background-color: #555;
         }
+
+        .chart-container {
+          position: relative;
+          height: 400px;
+        }
+
+        nav.bottom-nav {
+          position: fixed;
+          bottom: 0;
+          width: 100%;
+          background: #1e1e1e;
+          display: flex;
+          justify-content: space-around;
+          padding: 10px 0;
+          border-top: 1px solid #333;
+        }
+
+        nav.bottom-nav a img {
+          filter: brightness(1.1);
+        }
     </style>
 </head>
 <body>
@@ -58,11 +78,8 @@
 </div>
 
 <div class="chart-container">
-    <canvas id="waterChart"></canvas>
+    <canvas id="macroChart"></canvas>
 </div>
-
-<!-- Floating Log Button -->
-
 
 <!-- Bottom Navigation -->
 <nav class="bottom-nav" role="navigation" aria-label="Main navigation">
@@ -74,88 +91,100 @@
 <script>
     let chart;
 
-    function loadWaterData() {
+    function loadMacroData() {
       const entries = [];
 
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         if (key.startsWith('Macros_')) {
-          const date = key.replace('Macros', '');
-          const value = parseInt(localStorage.getItem(key), 10);
-          if (!isNaN(value)) {
-            entries.push({ date, value });
+          const date = key.replace('Macros_', '');
+          try {
+            const value = JSON.parse(localStorage.getItem(key));
+            entries.push({ date, ...value });
+          } catch (e) {
+            console.warn("Invalid macro entry:", key);
           }
         }
       }
 
-      // Sort by date
       return entries.sort((a, b) => new Date(a.date) - new Date(b.date));
     }
 
     function renderChart(range) {
-      const data = loadWaterData();
+      const data = loadMacroData();
       let filtered = data;
 
       if (range !== 'all') {
-        const daysAgo = new Date();
-        daysAgo.setDate(daysAgo.getDate() - range);
-        filtered = data.filter(entry => new Date(entry.date) >= daysAgo);
+        const cutoff = new Date();
+        cutoff.setDate(cutoff.getDate() - range);
+        filtered = data.filter(entry => new Date(entry.date) >= cutoff);
       }
 
       const labels = filtered.map(e => e.date);
-      const values = filtered.map(e => e.value);
+      const calories = filtered.map(e => Number(e.kcal));
+      const protein = filtered.map(e => Number(e.protein));
+      const fat = filtered.map(e => Number(e.fat));
+      const carbs = filtered.map(e => Number(e.carbs));
 
-      const ctx = document.getElementById('waterChart').getContext('2d');
+      const ctx = document.getElementById('macroChart').getContext('2d');
       if (chart) chart.destroy();
 
       chart = new Chart(ctx, {
-        type: 'line',
+        type: 'bar',
         data: {
           labels: labels,
-          datasets: [{
-            label: 'Water Intake (ml)',
-            data: values,
-            borderColor: '#4CAF50',
-            backgroundColor: 'rgba(76, 175, 80, 0.2)',
-            tension: 0.3,
-            pointRadius: 4,
-            pointBackgroundColor: '#a5d6a7',
-          }]
+          datasets: [
+            {
+              label: 'Calories',
+              data: calories,
+              backgroundColor: '#ff6600'
+            },
+            {
+              label: 'Protein (g)',
+              data: protein,
+              backgroundColor: '#4CAF50'
+            },
+            {
+              label: 'Fat (g)',
+              data: fat,
+              backgroundColor: '#fbc02d'
+            },
+            {
+              label: 'Carbs (g)',
+              data: carbs,
+              backgroundColor: '#42a5f5'
+            }
+          ]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          aspectRatio: 2,
+          scales: {
+            x: {
+              stacked: true,
+              ticks: { color: 'white' },
+              grid: { color: '#333' }
+            },
+            y: {
+              stacked: true,
+              ticks: { color: 'white' },
+              grid: { color: '#333' }
+            }
+          },
           plugins: {
             legend: {
               labels: {
                 color: 'white'
               }
-            },
-            tooltip: {
-              enabled: true
-            }
-          },
-          scales: {
-            x: {
-              ticks: { color: 'white' },
-              grid: { color: '#444' }
-            },
-            y: {
-              beginAtZero: true,
-              ticks: { color: 'white' },
-              grid: { color: '#444' }
             }
           }
         }
       });
     }
 
-    // Initial load: last 30 days
-    renderChart(30);
+    renderChart(30); // Default view
 </script>
 
 <script src="common.js"></script>
-
 </body>
 </html>

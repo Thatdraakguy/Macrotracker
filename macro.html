@@ -17,7 +17,6 @@
           width: 100%;
           max-width: 500px;
         }
-        /* Top row */
         .top-row {
           display: flex;
           gap: 10px;
@@ -52,7 +51,6 @@
         #saveBtn:hover {
           background: #ff6600;
         }
-        /* Stats box 2x2 grid */
         .stats-box {
           background: #222;
           border-radius: 12px;
@@ -60,7 +58,7 @@
           grid-template-columns: 1fr 1fr;
           grid-template-rows: 1fr 1fr;
           gap: 0;
-          height: 160px; /* 2x height * 2 rows */
+          height: 160px;
           font-size: 1.2rem;
           user-select: none;
         }
@@ -72,8 +70,7 @@
           border: 1px solid #444;
           border-radius: 12px;
         }
-        /* remove double border radius for inner items */
-       .emoji {
+        .emoji {
           font-size: 2rem;
           margin-bottom: 8px;
         }
@@ -93,13 +90,11 @@
           background: #333;
           border-radius: 4px;
         }
-
     </style>
 </head>
 <body>
 
 <div class="container">
-
     <div class="top-row">
         <input type="text" id="foodPrompt" value="No food loaded..." aria-label="Food name prompt" />
         <button id="saveBtn" aria-label="Save macros">Add</button>
@@ -123,20 +118,18 @@
             <input type="text" id="carbInput" class="stat-input" value="0g C" aria-label="Carbs" />
         </div>
     </div>
-
 </div>
 
 <script>
     const NUTRITIONIX_APP_ID = 'd4b13843';
     const NUTRITIONIX_API_KEY = '58598fcb53d06919c602f3e6472cc35c';
 
-    // Helper to limit prompt to 5 words max with "..."
     function shortenPrompt(text) {
       const words = text.trim().split(/\s+/);
       return words.length > 5 ? words.slice(0,5).join(' ') + '...' : text;
     }
 
-    // Load last saved data if any
+    // Load last saved data
     const rawData = localStorage.getItem("lastEntry");
     if (rawData) {
       const data = JSON.parse(rawData);
@@ -147,7 +140,6 @@
       document.getElementById("carbInput").value = `${data.carbs}g C`;
     }
 
-    // Send query to Nutritionix API and update inputs
     async function sendPromptToAPI(prompt) {
       const url = 'https://trackapi.nutritionix.com/v2/natural/nutrients';
       try {
@@ -160,9 +152,10 @@
           },
           body: JSON.stringify({ query: prompt })
         });
+
         if (!res.ok) throw new Error('API error ' + res.status);
         const data = await res.json();
-        if (!data.foods || !data.foods.length) throw new Error('No food data');
+        if (!data.foods || !data.foods.length) throw new Error('No food data found');
         const food = data.foods[0];
         return {
           kcal: food.nf_calories.toFixed(1),
@@ -176,38 +169,30 @@
       }
     }
 
-    // Save last entry to localStorage
     function saveLastEntry(prompt, kcal, protein, fat, carbs) {
       localStorage.setItem('lastEntry', JSON.stringify({
-        prompt,
-        kcal,
-        protein,
-        fat,
-        carbs
+        prompt, kcal, protein, fat, carbs
       }));
     }
 
-    // On Add button click
     document.getElementById('saveBtn').addEventListener('click', async () => {
       const promptInput = document.getElementById('foodPrompt').value.trim();
       if (!promptInput) return alert('Yo, gotta type some food first!');
 
-      // Send prompt to API
       const macros = await sendPromptToAPI(promptInput);
       if (!macros) return;
 
-      // Update inputs with returned data
       document.getElementById('caloriesInput').value = `${macros.kcal} kcal`;
       document.getElementById('proteinInput').value = `${macros.protein}g P`;
       document.getElementById('fatInput').value = `${macros.fat}g F`;
       document.getElementById('carbInput').value = `${macros.carbs}g C`;
 
-      // Save to localStorage
       saveLastEntry(promptInput, macros.kcal, macros.protein, macros.fat, macros.carbs);
 
-
+      // ✅ Save today's macros for charting
+      const today = new Date().toISOString().slice(0, 10);
+      localStorage.setItem(`Macros_${today}`, JSON.stringify(macros));
     });
-
 </script>
 
 </body>
