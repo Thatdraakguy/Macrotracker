@@ -139,20 +139,13 @@
             saveAndRedirect();
         });
 
-        let lastTapTime = 0;
-
-card.addEventListener('touchend', () => {
-    const currentTime = new Date().getTime();
-    const tapLength = currentTime - lastTapTime;
-
-    if (tapLength < 300 && tapLength > 0) {
-        // Detected a double tap
-        saveAndRedirect();
-    }
-
-    lastTapTime = currentTime;
-});
-
+        // Long press (mobile)
+        let pressTimer;
+        card.addEventListener('touchstart', () => {
+            pressTimer = setTimeout(saveAndRedirect, 600);
+        });
+        card.addEventListener('touchend', () => clearTimeout(pressTimer));
+        card.addEventListener('touchmove', () => clearTimeout(pressTimer));
 
         foodListEl.appendChild(card);
 

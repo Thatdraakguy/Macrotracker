@@ -283,17 +283,38 @@ window.addEventListener('DOMContentLoaded', updateBars);
           🥑 ${item.nf_total_fat.toFixed(1)}g
         `;
 
-        card.addEventListener('contextmenu', e => {
-          e.preventDefault();
-          localStorage.setItem('lastEntry', JSON.stringify({
-            prompt: `${item.serving_qty} ${item.serving_unit} ${item.food_name}`,
-            kcal: item.nf_calories.toFixed(1),
-            protein: item.nf_protein.toFixed(1),
-            fat: item.nf_total_fat.toFixed(1),
-            carbs: item.nf_total_carbohydrate.toFixed(1)
-          }));
-          window.location.href = 'macro.html';
-        });
+        // Store data and redirect function
+function saveAndRedirect() {
+  localStorage.setItem('lastEntry', JSON.stringify({
+    prompt: `${item.serving_qty} ${item.serving_unit} ${item.food_name}`,
+    kcal: item.nf_calories.toFixed(1),
+    protein: item.nf_protein.toFixed(1),
+    fat: item.nf_total_fat.toFixed(1),
+    carbs: item.nf_total_carbohydrate.toFixed(1)
+  }));
+  window.location.href = 'macro.html';
+}
+
+// Right-click (desktop)
+card.addEventListener('contextmenu', e => {
+  e.preventDefault();
+  saveAndRedirect();
+});
+
+// Double tap (mobile)
+let tappedOnce = false;
+
+card.addEventListener('touchend', () => {
+  if (!tappedOnce) {
+    tappedOnce = true;
+    setTimeout(() => {
+      tappedOnce = false;
+    }, 300); // shorter than 1s to feel snappy
+  } else {
+    saveAndRedirect();
+  }
+});
+
 
         foodListEl.appendChild(card);
 
