@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="common.css" />
+    <title>Water Tracker</title>
+    <style>
+        /* Je CSS blijft zoals het is */
+        body {
+          font-family: sans-serif;
+          background: #121212;
+          color: white;
+          padding: 20px;
+        }
+        h1 { margin-bottom: 20px; }
+        input[type="number"] {
+          padding: 10px;
+          font-size: 1.2rem;
+          width: 100px;
+          margin-right: 10px;
+          border-radius: 6px;
+          border: none;
+          outline: none;
+          background: #1e1e1e;
+          color: white;
+        }
+        input[type="number"]::placeholder { color: #888; }
+        button {
+          padding: 10px 16px;
+          font-size: 1rem;
+          border: none;
+          border-radius: 6px;
+          background: #4caf50;
+          color: white;
+          cursor: pointer;
+          transition: background 0.3s ease;
+        }
+        button:hover { background: #81c784; }
+        .total {
+          margin-top: 30px;
+          font-size: 1.5rem;
+          font-weight: bold;
+        }
+        nav.bottom-nav {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 60px;
+          background: #3a3a3a;
+          display: flex;
+          justify-content: space-around;
+          align-items: center;
+          border-top: 2px solid #252525;
+          box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.7);
+          z-index: 1000;
+        }
+        nav.bottom-nav a {
+          flex: 1;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        nav.bottom-nav img {
+          width: 50px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>🚰 Water Tracker</h1>
+
+<label for="waterInput" class="visually-hidden">Water amount in ml</label>
+<input type="number" id="waterInput" placeholder="ml" min="1" />
+<button>Add</button>
+<button onclick="resetToday()">Reset</button>
+
+<div class="total" id="totalToday">Today's total: 0 ml</div>
+
+<!-- Bottom Navigation -->
+<nav class="bottom-nav" role="navigation" aria-label="Main navigation">
+    <a href="habits.html"><img src="images/Onriselogo.png" alt="Habits" width="50"></a>
+    <a href="index.html"><img src="images/goldencarrotblackbg.jpg" alt="Dashboard" width="50"></a>
+    <a href="settings.html"><img src="images/Settingsblackpng.png" alt="Settings" width="50"></a>
+</nav>
+
+<script>
+    function getTodayKey() {
+      const now = new Date();
+      return `water_${now.toISOString().split('T')[0]}`;
+    }
+
+    function getTotal() {
+      const key = getTodayKey();
+      const saved = localStorage.getItem(key);
+      if (saved === null || saved === "null") {
+        return null;  // no water logged yet
+      }
+      const parsed = parseInt(saved, 10);
+      return isNaN(parsed) ? null : parsed;
+    }
+
+    function saveTotal(total) {
+      const key = getTodayKey();
+      if (total === null) {
+        localStorage.setItem(key, "null");
+      } else if (isNaN(total)) {
+        console.error('Tried to save NaN total!');
+        localStorage.setItem(key, "null");
+      } else {
+        localStorage.setItem(key, total);
+      }
+    }
+
+    function resetToday() {
+      saveTotal(null);
+      updateTotal();
+      alert("Today's water total has been reset!");
+    }
+
+    function updateTotal() {
+      const total = getTotal();
+      document.getElementById('totalToday').textContent = `Today's total: ${total === null ? 0 : total} ml`;
+    }
+
+    function logWater() {
+      const input = document.getElementById('waterInput');
+      const amount = parseInt(input.value, 10);
+
+      if (!amount || amount <= 0) {
+        alert("Please enter a valid positive amount!");
+        return;
+      }
+
+      let total = getTotal();
+      if (total === null) total = 0;
+      total += amount;
+      saveTotal(total);
+
+      input.value = '';
+      updateTotal();
+
+      console.log('Logged water amount:', amount, 'New total:', total);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      updateTotal();
+      document.querySelector('button').addEventListener('click', logWater);
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="common.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Water Intake Stats</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+          background: #121212;
+          color: white;
+          font-family: sans-serif;
+          padding: 20px;
+          margin-bottom: 80px;
+        }
+
+        h1 {
+          text-align: center;
+          margin-bottom: 40px;
+        }
+
+        .chart-container {
+          background: #1e1e1e;
+          border-radius: 8px;
+          padding: 10px;
+          height: 300px;
+        }
+
+        canvas {
+          width: 100% !important;
+          height: 100% !important;
+        }
+
+        .filter-buttons {
+          margin: 20px 0;
+          text-align: center;
+        }
+
+        .filter-buttons button {
+          font-size: 0.75rem;
+          padding: 6px 7px;
+          background-color: #333;
+          color: white;
+          border: 1px solid #555;
+          margin-right: 4px;
+          cursor: pointer;
+          border-radius: 4px;
+        }
+
+        .filter-buttons button:hover {
+          background-color: #555;
+        }
+
+        nav.bottom-nav {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 60px;
+          background: #3a3a3a;
+          display: flex;
+          justify-content: space-around;
+          align-items: center;
+          border-top: 2px solid #252525;
+          box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.7);
+          z-index: 1000;
+        }
+
+        nav.bottom-nav a {
+          flex: 1;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+
+        nav.bottom-nav img {
+          width: 50px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Your Water Intake</h1>
+
+<div class="filter-buttons">
+    <button onclick="renderChart(7)">7 Days</button>
+    <button onclick="renderChart(30)">30 Days</button>
+    <button onclick="renderChart('all')">Full Progress</button>
+</div>
+
+<div class="chart-container">
+    <canvas id="waterChart"></canvas>
+</div>
+
+<!-- Bottom Navigation -->
+<nav class="bottom-nav" role="navigation" aria-label="Main navigation">
+    <a href="habits.html"><img src="images/Onriselogo.png" alt="Habits" width="50"></a>
+    <a href="index.html"><img src="images/goldencarrotblackbg.jpg" alt="Dashboard" width="50"></a>
+    <a href="settings.html"><img src="images/Settingsblackpng.png" alt="Settings" width="50"></a>
+</nav>
+
+<script>
+    let chart;
+
+    function loadWaterData() {
+      const entries = [];
+
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+
+        // Only use total water keys (e.g., water_2025-06-23), skip "_entries"
+        if (key.startsWith('') && !key.includes('_entries')) {
+          const date = key.replace('water_', '');
+          const value = parseInt(localStorage.getItem(key), 10);
+          if (!isNaN(value)) {
+            entries.push({ date, value });
+          }
+        }
+      }
+
+      // Sort by date ascending
+      return entries.sort((a, b) => new Date(a.date) - new Date(b.date));
+    }
+
+    function renderChart(range) {
+      const data = loadWaterData();
+      let filtered = data;
+
+      if (range !== 'all') {
+        const cutoff = new Date();
+        cutoff.setDate(cutoff.getDate() - range);
+        filtered = data.filter(entry => new Date(entry.date) >= cutoff);
+      }
+
+      const labels = filtered.map(e => e.date);
+      const values = filtered.map(e => e.value);
+
+      const ctx = document.getElementById('waterChart').getContext('2d');
+      if (chart) chart.destroy();
+
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Water Intake (ml)',
+            data: values,
+            borderColor: '#2196F3',
+            backgroundColor: 'rgba(33, 150, 243, 0.3)',
+            tension: 0.3,
+            pointRadius: 4,
+            pointBackgroundColor: '#90caf9',
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { labels: { color: 'white' } },
+            tooltip: { enabled: true }
+          },
+          scales: {
+            x: {
+              ticks: { color: 'white' },
+              grid: { color: '#444' }
+            },
+            y: {
+              beginAtZero: true,
+              ticks: { color: 'white' },
+              grid: { color: '#444' }
+            }
+          }
+        }
+      });
+    }
+
+    // Initial chart load
+    renderChart('all');
+</script>
+
+<script src="common.js"></script>
+
+</body>
+</html>

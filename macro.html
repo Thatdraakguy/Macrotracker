@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Macro Layout 2x2 + API</title>
+    <style>
+        body {
+          background-color: #121212;
+          color: white;
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          margin: 20px;
+          display: flex;
+          justify-content: center;
+        }
+        .container {
+          width: 100%;
+          max-width: 500px;
+        }
+        .top-row {
+          display: flex;
+          gap: 10px;
+          margin-bottom: 15px;
+        }
+        #foodPrompt {
+          flex: 2;
+          font-size: 1.1rem;
+          padding: 8px 12px;
+          border-radius: 8px;
+          border: 1px solid #444;
+          background: #222;
+          color: white;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        #foodPrompt:focus {
+          outline: none;
+          border-color: #ff6600;
+        }
+        #saveBtn {
+          flex: 1;
+          background: #333;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          font-size: 1.1rem;
+          cursor: pointer;
+          transition: background-color 0.3s ease;
+        }
+        #saveBtn:hover {
+          background: #ff6600;
+        }
+        .stats-box {
+          background: #222;
+          border-radius: 12px;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          grid-template-rows: 1fr 1fr;
+          gap: 0;
+          height: 160px;
+          font-size: 1.2rem;
+          user-select: none;
+        }
+        .stat-item {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          border: 1px solid #444;
+          border-radius: 12px;
+        }
+        .emoji {
+          font-size: 2rem;
+          margin-bottom: 8px;
+        }
+        .stat-input {
+          background: transparent;
+          border: none;
+          color: white;
+          font-weight: 700;
+          font-size: 1.3rem;
+          text-align: center;
+          width: 100%;
+          padding: 0 5px;
+        }
+        .stat-input:focus {
+          outline: none;
+          border-bottom: 2px solid #ff6600;
+          background: #333;
+          border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="top-row">
+        <input type="text" id="foodPrompt" value="No food loaded..." aria-label="Food name prompt" />
+        <button id="saveBtn" aria-label="Save macros">Add</button>
+    </div>
+
+    <div class="stats-box">
+        <div class="stat-item">
+            <div class="emoji" aria-hidden="true">🔥</div>
+            <input type="text" id="caloriesInput" class="stat-input" value="0 kcal" aria-label="Calories" />
+        </div>
+        <div class="stat-item">
+            <div class="emoji" aria-hidden="true">🥩</div>
+            <input type="text" id="proteinInput" class="stat-input" value="0g P" aria-label="Protein" />
+        </div>
+        <div class="stat-item">
+            <div class="emoji" aria-hidden="true">🥑</div>
+            <input type="text" id="fatInput" class="stat-input" value="0g F" aria-label="Fat" />
+        </div>
+        <div class="stat-item">
+            <div class="emoji" aria-hidden="true">🌾</div>
+            <input type="text" id="carbInput" class="stat-input" value="0g C" aria-label="Carbs" />
+        </div>
+    </div>
+</div>
+
+<script>
+    const NUTRITIONIX_APP_ID = 'd4b13843';
+    const NUTRITIONIX_API_KEY = '58598fcb53d06919c602f3e6472cc35c';
+
+    function shortenPrompt(text) {
+      const words = text.trim().split(/\s+/);
+      return words.length > 5 ? words.slice(0,5).join(' ') + '...' : text;
+    }
+
+    // Load last saved data
+    const rawData = localStorage.getItem("lastEntry");
+    if (rawData) {
+      const data = JSON.parse(rawData);
+      document.getElementById("foodPrompt").value = shortenPrompt(data.prompt);
+      document.getElementById("caloriesInput").value = `${data.kcal} kcal`;
+      document.getElementById("proteinInput").value = `${data.protein}g P`;
+      document.getElementById("fatInput").value = `${data.fat}g F`;
+      document.getElementById("carbInput").value = `${data.carbs}g C`;
+    }
+
+    async function sendPromptToAPI(prompt) {
+      const url = 'https://trackapi.nutritionix.com/v2/natural/nutrients';
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-app-id': NUTRITIONIX_APP_ID,
+            'x-app-key': NUTRITIONIX_API_KEY
+          },
+          body: JSON.stringify({ query: prompt })
+        });
+
+        if (!res.ok) throw new Error('API error ' + res.status);
+        const data = await res.json();
+        if (!data.foods || !data.foods.length) throw new Error('No food data found');
+        const food = data.foods[0];
+        return {
+          kcal: food.nf_calories.toFixed(1),
+          protein: food.nf_protein.toFixed(1),
+          fat: food.nf_total_fat.toFixed(1),
+          carbs: food.nf_total_carbohydrate.toFixed(1)
+        };
+      } catch (err) {
+        alert('API error: ' + err.message);
+        return null;
+      }
+    }
+
+    function saveLastEntry(prompt, kcal, protein, fat, carbs) {
+      localStorage.setItem('lastEntry', JSON.stringify({
+        prompt, kcal, protein, fat, carbs
+      }));
+    }
+
+    document.getElementById('saveBtn').addEventListener('click', async () => {
+      const promptInput = document.getElementById('foodPrompt').value.trim();
+      if (!promptInput) return alert('Yo, gotta type some food first!');
+
+      const macros = await sendPromptToAPI(promptInput);
+      if (!macros) return;
+
+      document.getElementById('caloriesInput').value = `${macros.kcal} kcal`;
+      document.getElementById('proteinInput').value = `${macros.protein}g P`;
+      document.getElementById('fatInput').value = `${macros.fat}g F`;
+      document.getElementById('carbInput').value = `${macros.carbs}g C`;
+
+      saveLastEntry(promptInput, macros.kcal, macros.protein, macros.fat, macros.carbs);
+
+      // ✅ Save today's macros for charting
+      const today = new Date().toISOString().slice(0, 10);
+      localStorage.setItem(`Macros_${today}`, JSON.stringify(macros));
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="common.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Macro Stats</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+          background: #121212;
+          color: white;
+          font-family: sans-serif;
+          padding: 20px;
+          margin-bottom: 80px;
+        }
+
+        h1 {
+          text-align: center;
+          margin-bottom: 20px;
+        }
+
+        canvas {
+          background: #1e1e1e;
+          border-radius: 8px;
+          padding: 10px;
+        }
+
+        .filter-buttons {
+          margin: 20px 0;
+          text-align: center;
+        }
+
+        .filter-buttons button {
+          font-size: 0.75rem;
+          padding: 6px 7px;
+          background-color: #333;
+          color: white;
+          border: 1px solid #555;
+          margin-right: 4px;
+          cursor: pointer;
+          border-radius: 4px;
+        }
+
+        .filter-buttons button:hover {
+          background-color: #555;
+        }
+
+        .chart-container {
+          position: relative;
+          height: 400px;
+        }
+
+        nav.bottom-nav {
+          position: fixed;
+          bottom: 0;
+          width: 100%;
+          background: #1e1e1e;
+          display: flex;
+          justify-content: space-around;
+          padding: 10px 0;
+          border-top: 1px solid #333;
+        }
+
+        nav.bottom-nav a img {
+          filter: brightness(1.1);
+        }
+    </style>
+</head>
+<body>
+
+<h1>Your Macro Stats</h1>
+
+<div class="filter-buttons">
+    <button onclick="renderChart(7)">7 Days</button>
+    <button onclick="renderChart(30)">30 Days</button>
+    <button onclick="renderChart('all')">Full Progress</button>
+</div>
+
+<div class="chart-container">
+    <canvas id="macroChart"></canvas>
+</div>
+
+<!-- Bottom Navigation -->
+<nav class="bottom-nav" role="navigation" aria-label="Main navigation">
+    <a href="habits.html"><img src="images/Onriselogo.png" alt="Habits" width="50"></a>
+    <a href="index.html"><img src="images/goldencarrotblackbg.jpg" alt="Dashboard" width="50"></a>
+    <a href="settings.html"><img src="images/Settingsblackpng.png" alt="Settings" width="50"></a>
+</nav>
+
+<script>
+    let chart;
+
+    function loadMacroData() {
+      const entries = [];
+
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith('Macros_')) {
+          const date = key.replace('Macros_', '');
+          try {
+            const value = JSON.parse(localStorage.getItem(key));
+            entries.push({ date, ...value });
+          } catch (e) {
+            console.warn("Invalid macro entry:", key);
+          }
+        }
+      }
+
+      return entries.sort((a, b) => new Date(a.date) - new Date(b.date));
+    }
+
+    function renderChart(range) {
+      const data = loadMacroData();
+      let filtered = data;
+
+      if (range !== 'all') {
+        const cutoff = new Date();
+        cutoff.setDate(cutoff.getDate() - range);
+        filtered = data.filter(entry => new Date(entry.date) >= cutoff);
+      }
+
+      const labels = filtered.map(e => e.date);
+      const calories = filtered.map(e => Number(e.kcal));
+      const protein = filtered.map(e => Number(e.protein));
+      const fat = filtered.map(e => Number(e.fat));
+      const carbs = filtered.map(e => Number(e.carbs));
+
+      const ctx = document.getElementById('macroChart').getContext('2d');
+      if (chart) chart.destroy();
+
+      chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Calories',
+              data: calories,
+              backgroundColor: '#ff6600'
+            },
+            {
+              label: 'Protein (g)',
+              data: protein,
+              backgroundColor: '#4CAF50'
+            },
+            {
+              label: 'Fat (g)',
+              data: fat,
+              backgroundColor: '#fbc02d'
+            },
+            {
+              label: 'Carbs (g)',
+              data: carbs,
+              backgroundColor: '#42a5f5'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              stacked: true,
+              ticks: { color: 'white' },
+              grid: { color: '#333' }
+            },
+            y: {
+              stacked: true,
+              ticks: { color: 'white' },
+              grid: { color: '#333' }
+            }
+          },
+          plugins: {
+            legend: {
+              labels: {
+                color: 'white'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    renderChart(30); // Default view
+</script>
+
+<script src="common.js"></script>
+</body>
+</html>
