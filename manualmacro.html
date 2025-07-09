@@ -33,6 +33,19 @@
             clip: rect(1px, 1px, 1px, 1px);
             white-space: nowrap;
         }
+        .food-card {
+    background: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px 0;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+.food-card:hover {
+    background: #2c2c2c;
+}
+
     </style>
 </head>
 <body>
@@ -89,25 +102,65 @@
     }
 
     function renderList() {
-        foodListEl.innerHTML = '';
-        let totalCalories = 0, totalProtein = 0, totalCarbs = 0, totalFat = 0;
+    foodListEl.innerHTML = '';
+    let totalCalories = 0, totalProtein = 0, totalCarbs = 0, totalFat = 0;
 
-        foodList.forEach(item => {
-            const li = document.createElement('li');
-            li.textContent = `${item.food_name} - ${item.serving_qty} ${item.serving_unit} | Calories: ${item.nf_calories.toFixed(1)} kcal, Protein: ${item.nf_protein.toFixed(1)}g, Carbs: ${item.nf_total_carbohydrate.toFixed(1)}g, Fat: ${item.nf_total_fat.toFixed(1)}g`;
-            foodListEl.appendChild(li);
+    foodList.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = 'food-card';
+        card.tabIndex = 0;
+        card.setAttribute('role', 'button');
+        card.setAttribute('aria-label', `View macros for ${item.food_name}`);
 
-            totalCalories += item.nf_calories;
-            totalProtein += item.nf_protein;
-            totalCarbs += item.nf_total_carbohydrate;
-            totalFat += item.nf_total_fat;
+        card.innerHTML = `
+            <strong>${item.food_name}</strong><br />
+            ${item.serving_qty} ${item.serving_unit}<br />
+            🔥 ${item.nf_calories.toFixed(1)} kcal |
+            🥩 ${item.nf_protein.toFixed(1)}g |
+            🌾 ${item.nf_total_carbohydrate.toFixed(1)}g |
+            🥑 ${item.nf_total_fat.toFixed(1)}g
+        `;
+
+        // Save this food item on long press / right-click
+        const saveAndRedirect = () => {
+            localStorage.setItem('lastEntry', JSON.stringify({
+                prompt: `${item.serving_qty} ${item.serving_unit} ${item.food_name}`,
+                kcal: item.nf_calories.toFixed(1),
+                protein: item.nf_protein.toFixed(1),
+                fat: item.nf_total_fat.toFixed(1),
+                carbs: item.nf_total_carbohydrate.toFixed(1)
+            }));
+            window.location.href = 'macro.html';
+        };
+
+        // Right click
+        card.addEventListener('contextmenu', e => {
+            e.preventDefault();
+            saveAndRedirect();
         });
 
-        totalsEl.textContent = `Calories: ${totalCalories.toFixed(1)} kcal | Protein: ${totalProtein.toFixed(1)}g | Carbs: ${totalCarbs.toFixed(1)}g | Fat: ${totalFat.toFixed(1)}g`;
+        // Long press (mobile)
+        let pressTimer;
+        card.addEventListener('touchstart', () => {
+            pressTimer = setTimeout(saveAndRedirect, 600);
+        });
+        card.addEventListener('touchend', () => clearTimeout(pressTimer));
+        card.addEventListener('touchmove', () => clearTimeout(pressTimer));
 
-        saveFoodList(foodList);
-        saveCompactMacros(totalProtein, totalFat, totalCarbs, totalCalories);
-    }
+        foodListEl.appendChild(card);
+
+        totalCalories += item.nf_calories;
+        totalProtein += item.nf_protein;
+        totalCarbs += item.nf_total_carbohydrate;
+        totalFat += item.nf_total_fat;
+    });
+
+    totalsEl.textContent = `Calories: ${totalCalories.toFixed(1)} kcal | Protein: ${totalProtein.toFixed(1)}g | Carbs: ${totalCarbs.toFixed(1)}g | Fat: ${totalFat.toFixed(1)}g`;
+
+    saveFoodList(foodList);
+    saveCompactMacros(totalProtein, totalFat, totalCarbs, totalCalories);
+}
+
 
     async function getNutritionData(query) {
         const url = 'https://trackapi.nutritionix.com/v2/natural/nutrients';

@@ -1,199 +1,252 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Macro Layout 2x2 + API</title>
-    <style>
-        body {
-          background-color: #121212;
-          color: white;
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-          margin: 20px;
-          display: flex;
-          justify-content: center;
-        }
-        .container {
-          width: 100%;
-          max-width: 500px;
-        }
-        .top-row {
-          display: flex;
-          gap: 10px;
-          margin-bottom: 15px;
-        }
-        #foodPrompt {
-          flex: 2;
-          font-size: 1.1rem;
-          padding: 8px 12px;
-          border-radius: 8px;
-          border: 1px solid #444;
-          background: #222;
-          color: white;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-        #foodPrompt:focus {
-          outline: none;
-          border-color: #ff6600;
-        }
-        #saveBtn {
-          flex: 1;
-          background: #333;
-          color: white;
-          border: none;
-          border-radius: 8px;
-          font-size: 1.1rem;
-          cursor: pointer;
-          transition: background-color 0.3s ease;
-        }
-        #saveBtn:hover {
-          background: #ff6600;
-        }
-        .stats-box {
-          background: #222;
-          border-radius: 12px;
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          grid-template-rows: 1fr 1fr;
-          gap: 0;
-          height: 160px;
-          font-size: 1.2rem;
-          user-select: none;
-        }
-        .stat-item {
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-          border: 1px solid #444;
-          border-radius: 12px;
-        }
-        .emoji {
-          font-size: 2rem;
-          margin-bottom: 8px;
-        }
-        .stat-input {
-          background: transparent;
-          border: none;
-          color: white;
-          font-weight: 700;
-          font-size: 1.3rem;
-          text-align: center;
-          width: 100%;
-          padding: 0 5px;
-        }
-        .stat-input:focus {
-          outline: none;
-          border-bottom: 2px solid #ff6600;
-          background: #333;
-          border-radius: 4px;
-        }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <div class="top-row">
-        <input type="text" id="foodPrompt" value="No food loaded..." aria-label="Food name prompt" />
-        <button id="saveBtn" aria-label="Save macros">Add</button>
-    </div>
-
-    <div class="stats-box">
-        <div class="stat-item">
-            <div class="emoji" aria-hidden="true">🔥</div>
-            <input type="text" id="caloriesInput" class="stat-input" value="0 kcal" aria-label="Calories" />
-        </div>
-        <div class="stat-item">
-            <div class="emoji" aria-hidden="true">🥩</div>
-            <input type="text" id="proteinInput" class="stat-input" value="0g P" aria-label="Protein" />
-        </div>
-        <div class="stat-item">
-            <div class="emoji" aria-hidden="true">🥑</div>
-            <input type="text" id="fatInput" class="stat-input" value="0g F" aria-label="Fat" />
-        </div>
-        <div class="stat-item">
-            <div class="emoji" aria-hidden="true">🌾</div>
-            <input type="text" id="carbInput" class="stat-input" value="0g C" aria-label="Carbs" />
-        </div>
-    </div>
-</div>
-
-<script>
-    const NUTRITIONIX_APP_ID = 'd4b13843';
-    const NUTRITIONIX_API_KEY = '58598fcb53d06919c602f3e6472cc35c';
-
-    function shortenPrompt(text) {
-      const words = text.trim().split(/\s+/);
-      return words.length > 5 ? words.slice(0,5).join(' ') + '...' : text;
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="stylesheet" href="common.css" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Macro Layout 2x2 + API</title>
+        <style>
+            .container {
+      max-width: 500px;
+      margin: auto;
+      padding: 20px;
     }
 
-    // Load last saved data
-    const rawData = localStorage.getItem("lastEntry");
-    if (rawData) {
+    .food-title {
+      background: #222;
+      color: white;
+      border: 1px solid #444;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 1.2rem;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+
+    .stats-box-vertical {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .stat-item {
+      background: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .stat-item.large {
+      font-size: 1.4rem;
+      font-weight: bold;
+    }
+
+    .emoji {
+      font-size: 1.5rem;
+    }
+
+    .save-button {
+      width: 100%;
+      background: #ff6600;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      margin-bottom: 80px; /* give space for nav */
+    }
+
+    .save-button:hover {
+      background: #ffa600;
+    }
+    .macro-input {
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid #555;
+      color: white;
+      font-size: 1.2rem;
+      width: 60px;
+      text-align: right;
+    }
+
+    .macro-input:focus {
+      outline: none;
+      border-color: #ff6600;
+    }
+
+    .large-input {
+      font-size: 1.5rem;
+      font-weight: bold;
+      width: 80px;
+    }
+    .button-row {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .save-button,
+    .remove-button {
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .save-button {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .remove-button {
+      background-color: #dc3545;
+      color: white;
+    }
+
+        </style>
+    </head>
+    <body>
+    <div class="container">
+        <input type="text" id="foodPrompt" value="No food loaded..." aria-label="Food name prompt" class="food-title" />
+
+        <div class="stats-box-vertical">
+            <div class="stat-item large">
+                <span class="emoji">🔥</span>
+                <input type="number" id="caloriesInput" placeholder="0" class="macro-input large-input" /> kcal
+            </div>
+            <div class="stat-item">
+                <span class="emoji">🥩</span>
+                <input type="number" id="proteinInput" placeholder="0" class="macro-input" /> g P
+            </div>
+            <div class="stat-item">
+                <span class="emoji">🥑</span>
+                <input type="number" id="fatInput" placeholder="0" class="macro-input" /> g F
+            </div>
+            <div class="stat-item">
+                <span class="emoji">🌾</span>
+                <input type="number" id="carbInput" placeholder="0" class="macro-input" /> g C
+            </div>
+        </div>
+
+
+        <button id="saveBtn" class="save-button">💾 Save</button>
+        <button id="removeBtn" class="remove-button">🗑️ Remove</button>
+    </div>
+
+    <!-- Reuse nav from manualmacro -->
+    <nav class="bottom-nav" role="navigation" aria-label="Main navigation">
+        <a href="habits.html" aria-label="Go to Habits page">
+            <img src="images/Onriselogo.png" alt="Onrise" width="50" />
+        </a>
+        <a href="index.html" aria-label="Go to Dashboard page">
+            <img src="images/goldencarrotblackbg.jpg" alt="Golden carrot" width="50" />
+        </a>
+        <a href="settings.html" aria-label="Go to Settings page">
+            <img src="images/Settingsblackpng.png" alt="Settings" width="50" />
+        </a>
+    </nav>
+    <script>
+        const promptEl = document.getElementById("foodPrompt");
+    const caloriesEl = document.getElementById("caloriesInput");
+    const proteinEl = document.getElementById("proteinInput");
+    const fatEl = document.getElementById("fatInput");
+    const carbEl = document.getElementById("carbInput");
+        const saveBtn = document.getElementById("saveBtn");
+
+        // Load the last entry
+        const rawData = localStorage.getItem("lastEntry");
+        if (rawData) {
       const data = JSON.parse(rawData);
-      document.getElementById("foodPrompt").value = shortenPrompt(data.prompt);
-      document.getElementById("caloriesInput").value = `${data.kcal} kcal`;
-      document.getElementById("proteinInput").value = `${data.protein}g P`;
-      document.getElementById("fatInput").value = `${data.fat}g F`;
-      document.getElementById("carbInput").value = `${data.carbs}g C`;
+      promptEl.value = data.prompt;
+      caloriesEl.value = data.kcal;
+      proteinEl.value = data.protein;
+      fatEl.value = data.fat;
+      carbEl.value = data.carbs;
     }
 
-    async function sendPromptToAPI(prompt) {
-      const url = 'https://trackapi.nutritionix.com/v2/natural/nutrients';
-      try {
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-app-id': NUTRITIONIX_APP_ID,
-            'x-app-key': NUTRITIONIX_API_KEY
-          },
-          body: JSON.stringify({ query: prompt })
+        saveBtn.addEventListener("click", () => {
+          const updatedEntry = {
+      prompt: promptEl.value.trim(),
+      kcal: caloriesEl.value,
+      protein: proteinEl.value,
+      fat: fatEl.value,
+      carbs: carbEl.value
+    };
+
+
+          localStorage.setItem("lastEntry", JSON.stringify(updatedEntry));
+
+          // Update main foodList
+          const todayKey = `foodList_${new Date().toISOString().split("T")[0]}`;
+          const currentList = JSON.parse(localStorage.getItem(todayKey) || "[]");
+
+          const newItem = {
+            food_name: updatedEntry.prompt,
+            serving_qty: 1,
+            serving_unit: '',
+            nf_calories: parseFloat(updatedEntry.kcal),
+            nf_protein: parseFloat(updatedEntry.protein),
+            nf_total_fat: parseFloat(updatedEntry.fat),
+            nf_total_carbohydrate: parseFloat(updatedEntry.carbs)
+          };
+
+          // Replace the last item
+          currentList.pop();
+          currentList.push(newItem);
+
+          localStorage.setItem(todayKey, JSON.stringify(currentList));
+
+          // Update total macros too
+          const totalProtein = currentList.reduce((a, f) => a + f.nf_protein, 0);
+          const totalFat = currentList.reduce((a, f) => a + f.nf_total_fat, 0);
+          const totalCarbs = currentList.reduce((a, f) => a + f.nf_total_carbohydrate, 0);
+          const totalCalories = currentList.reduce((a, f) => a + f.nf_calories, 0);
+
+          localStorage.setItem(`macros_${todayKey.split('_')[1]}`, `${totalProtein}p ${totalFat}f ${totalCarbs}c ${totalCalories}k`);
+
+          // Redirect back to manualmacro
+          window.location.href = "manualmacro.html";
         });
+        const removeBtn = document.getElementById("removeBtn");
 
-        if (!res.ok) throw new Error('API error ' + res.status);
-        const data = await res.json();
-        if (!data.foods || !data.foods.length) throw new Error('No food data found');
-        const food = data.foods[0];
-        return {
-          kcal: food.nf_calories.toFixed(1),
-          protein: food.nf_protein.toFixed(1),
-          fat: food.nf_total_fat.toFixed(1),
-          carbs: food.nf_total_carbohydrate.toFixed(1)
-        };
-      } catch (err) {
-        alert('API error: ' + err.message);
-        return null;
-      }
-    }
+    removeBtn.addEventListener("click", () => {
+  const todayKey = `foodList_${new Date().toISOString().split("T")[0]}`;
+  const currentList = JSON.parse(localStorage.getItem(todayKey) || "[]");
 
-    function saveLastEntry(prompt, kcal, protein, fat, carbs) {
-      localStorage.setItem('lastEntry', JSON.stringify({
-        prompt, kcal, protein, fat, carbs
-      }));
-    }
+  if (currentList.length === 0) return;
 
-    document.getElementById('saveBtn').addEventListener('click', async () => {
-      const promptInput = document.getElementById('foodPrompt').value.trim();
-      if (!promptInput) return alert('Yo, gotta type some food first!');
+  // Remove last item (just like you do in save)
+  currentList.pop();
 
-      const macros = await sendPromptToAPI(promptInput);
-      if (!macros) return;
+  localStorage.setItem(todayKey, JSON.stringify(currentList));
 
-      document.getElementById('caloriesInput').value = `${macros.kcal} kcal`;
-      document.getElementById('proteinInput').value = `${macros.protein}g P`;
-      document.getElementById('fatInput').value = `${macros.fat}g F`;
-      document.getElementById('carbInput').value = `${macros.carbs}g C`;
+  // Recalculate totals
+  const totalProtein = currentList.reduce((a, f) => a + f.nf_protein, 0);
+  const totalFat = currentList.reduce((a, f) => a + f.nf_total_fat, 0);
+  const totalCarbs = currentList.reduce((a, f) => a + f.nf_total_carbohydrate, 0);
+  const totalCalories = currentList.reduce((a, f) => a + f.nf_calories, 0);
 
-      saveLastEntry(promptInput, macros.kcal, macros.protein, macros.fat, macros.carbs);
+  const dateKey = todayKey.split('_')[1];
+  localStorage.setItem(`macros_${dateKey}`, `${totalProtein}p ${totalFat}f ${totalCarbs}c ${totalCalories}k`);
 
-      // ✅ Save today's macros for charting
-      const today = new Date().toISOString().slice(0, 10);
-      localStorage.setItem(`Macros_${today}`, JSON.stringify(macros));
-    });
-</script>
+  // Clear last entry (optional)
+  localStorage.removeItem("lastEntry");
 
-</body>
-</html>
+  // Redirect
+  window.location.href = "manualmacro.html";
+});
+
+
+    </script>
+    <script src="common.js"></script>
+    </body>
+
+    </html>
