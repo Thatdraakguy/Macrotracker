@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="common.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Weight Tracker</title>
+    <style>
+        body {
+          font-family: sans-serif;
+          background: #121212;
+          color: white;
+          padding: 20px;
+        }
+
+        input[type="number"] {
+          padding: 10px;
+          font-size: 1rem;
+          margin-right: 10px;
+          width: 100px;
+        }
+
+        button {
+          padding: 10px 20px;
+          background-color: #4caf50;
+          color: white;
+          border: none;
+          cursor: pointer;
+          border-radius: 5px;
+        }
+
+        button:hover {
+          background-color: #81c784;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Log Your Weight</h1>
+<p>Enter how much your weight was (in kg):</p>
+<input type="number" id="weightInput" placeholder="e.g. 50" />
+<button onclick="logWeight()">Save</button>
+
+<script>
+    function getTodayKey() {
+      return new Date().toISOString().split('T')[0];
+    }
+
+    function logWeight() {
+  let input = document.getElementById('weightInput').value.trim();
+
+  // Convert comma to dot if user enters 65,3
+  input = input.replace(',', '.');
+
+  const amount = parseFloat(input);
+  if (isNaN(amount) || amount <= 0) {
+    alert('Please enter a valid weight.');
+    return;
+  }
+
+  const key = `weight_${getTodayKey()}`;
+  localStorage.setItem(key, amount);
+  alert(`Saved ${amount} kg!`);
+}
+
+</script>
+<!-- Floating Log Button -->
+<div class="log-btn-container" id="logBtnContainer" tabindex="0" aria-label="Open logging options">
+    <div class="log-btn" id="logBtn" role="button" aria-pressed="false" tabindex="0" title="Logging features">✍️</div>
+    <div class="log-popup" id="logPopup">
+        <strong>Log Feature</strong>
+        <div class="popup-buttons">
+            <button class="popup-btn" id="photoBtn">📷 Take Photo</button>
+            <button class="popup-btn" id="waterBtn">💧 Water</button>
+            <button class="popup-btn" id="manualBtn">✍️ Manual Entry</button>
+            <button class="popup-btn" id="weightBtn">⚖️ Log Weight</button>
+
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Navigation Bar -->
+<nav class="bottom-nav" role="navigation" aria-label="Main navigation">
+    <a href="habits.html" aria-label="Go to Habits page">
+        <img src="images/Onriselogo.png" alt="Onrise" width="50">
+    </a>
+    <a href="index.html" aria-label="Go to Dashboard page">
+        <img src="images/goldencarrotblackbg.jpg" alt="Golden carrot" width="50">
+    </a>
+    <a href="settings.html" aria-label="Go to Settings page">
+        <img src="images/Settingsblackpng.png" alt="Settings" width="50">
+    </a>
+</nav>
+
+<script src="common.js"></script>
+
+</body>
+</html>

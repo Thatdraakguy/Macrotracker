@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="common.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Habits. Slayyy :D</title>
+    <style>
+        body {
+          font-family: sans-serif;
+          background: #121212;
+          color: white;
+          padding: 20px;
+        }
+
+        .habit {
+          padding: 10px 20px;
+          margin: 10px 0;
+          background: #1e1e1e;
+          border-left: 6px solid #4CAF50;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .habit.done {
+          background: #2e7d32;
+          text-decoration: line-through;
+        }
+
+        .habit:hover {
+          opacity: 0.8;
+        }
+
+        .habit .points {
+          font-weight: 700;
+          font-size: 1.1rem;
+          padding: 4px 8px;
+          border-radius: 6px;
+          min-width: 28px;
+          text-align: center;
+          color: white;
+        }
+
+        /* Points colors */
+        .points-1 { background: #add8e6; } /* light blue */
+        .points-2 { background: #4caf50; } /* green */
+        .points-3 { background: #ffeb3b; color: #333; } /* yellow */
+        .points-4 { background: #ff9800; } /* orange */
+        .points-5 { background: #f44336; } /* red */
+
+        /* Input styles for editing */
+        .habit input[type="text"], .habit input[type="number"] {
+          font-size: 1rem;
+          padding: 4px 8px;
+          border-radius: 6px;
+          border: none;
+          outline: none;
+          width: 60%;
+          max-width: 200px;
+        }
+        .habit input[type="number"] {
+          width: 40px;
+          margin-left: 10px;
+        }
+
+        .nav {
+          margin-top: 30px;
+        }
+
+        .nav a {
+          color: #4CAF50;
+          text-decoration: none;
+          margin-right: 10px;
+        }
+
+        .nav a:hover {
+          text-decoration: underline;
+        }
+
+
+
+
+
+
+
+        /* Show popup on active class (for click toggle) */
+        .log-btn-container.active .log-popup {
+          opacity: 1;
+          pointer-events: auto;
+        }
+        body {
+          font-family: sans-serif;
+          background: #121212;
+          color: white;
+          padding: 20px;
+          padding-bottom: 60px; git
+        }
+
+        .habit {
+          padding: 10px 20px;
+          margin: 10px 0;
+          background: #1e1e1e;
+          border-left: 6px solid #4CAF50;
+          cursor: pointer;
+          transition: all 0.2s ease;
+
+        }
+
+        .habit.done {
+          background: #2e7d32;
+          text-decoration: line-through;
+        }
+
+        .habit:hover {
+          opacity: 0.8;
+        }
+
+        .nav {
+          margin-top: 30px;
+        }
+
+        .nav a {
+          color: #4CAF50;
+          text-decoration: none;
+          margin-right: 10px;
+        }
+
+        .nav a:hover {
+          text-decoration: underline;
+        }
+
+
+    </style>
+</head>
+<body>
+<h1>Track Your Habits</h1>
+
+<div id="habits-list"></div>
+
+
+
+<script>
+    const habitList = document.getElementById('habits-list');
+
+    // Load from localStorage or default
+    let habits = JSON.parse(localStorage.getItem('habitsData')) || [
+      { name: "Hit macros", points: 4 },
+      { name: "Exercise", points: 3 },
+      { name: "Read 20 mins", points: 3 },
+      { name: "Meditate 5 mins", points: 2 },
+      { name: "U better click me", points: 5 },
+      { name: "Less than 2 hrs wasted", points: 4 },
+      { name: "+8 hrs of sleep", points: 5},
+      { name: "yoga morning" , points: 1} ,
+      { name: "yoga night" , points: 1} ,
+      { name: "Set goals for tomorrow" , points: 2},
+      { name: "actually accomplish those goals" , points: 4},
+      { name: "Do ur daily goals" / points: 5},
+
+    ];
+
+    // Utility: format date as YYYY-MM-DD
+    function getTodayKey() {
+      const now = new Date();
+      return now.toISOString().split('T')[0];
+    }
+
+    function renderHabits() {
+      habitList.innerHTML = '';
+      const today = getTodayKey();
+
+      habits.forEach((habit, index) => {
+        const div = document.createElement('div');
+        div.className = 'habit';
+        div.textContent = `${habit.name} (${habit.points}pt)`;
+
+        const habitDoneKey = `${today}_${habit.name}_done`;
+        const isDone = localStorage.getItem(habitDoneKey) === 'true';
+        if (isDone) div.classList.add('done');
+
+        updateColorByPoints(div, habit.points);
+
+        div.addEventListener('click', () => {
+          const done = !div.classList.contains('done');
+          div.classList.toggle('done');
+          localStorage.setItem(habitDoneKey, done);
+
+          // Update points only if marking as done
+          if (done) {
+            addPointsForToday(habit.points);
+          } else {
+            subtractPointsForToday(habit.points);
+          }
+        });
+
+        habitList.appendChild(div);
+      });
+    }
+
+    function updateColorByPoints(div, points) {
+      if (points >= 5) {
+        div.style.borderLeftColor = 'red';
+      } else if (points >= 4) {
+        div.style.borderLeftColor = 'orange';
+      } else if (points >= 3) {
+        div.style.borderLeftColor = 'yellow';
+      } else if (points >= 2) {
+        div.style.borderLeftColor = '#4CAF50'; // green
+      } else {
+        div.style.borderLeftColor = 'lightblue';
+      }
+    }
+
+    // Total points per day saved separately
+    function getDailyPointsKey() {
+      return `points_${getTodayKey()}`;
+    }
+
+    function getTodayPoints() {
+      return parseInt(localStorage.getItem(getDailyPointsKey()) || '0', 10);
+    }
+
+    function addPointsForToday(pts) {
+      const current = getTodayPoints();
+      localStorage.setItem(getDailyPointsKey(), current + pts);
+    }
+
+    function subtractPointsForToday(pts) {
+      const current = getTodayPoints();
+      localStorage.setItem(getDailyPointsKey(), Math.max(0, current - pts));
+    }
+
+    window.addEventListener('DOMContentLoaded', renderHabits);
+</script>
+<script src="common.js"></script>
+<!-- Floating Log Button -->
+<div class="log-btn-container" id="logBtnContainer" tabindex="0" aria-label="Open logging options">
+    <div class="log-btn" id="logBtn" role="button" aria-pressed="false" tabindex="0" title="Logging features">✍️</div>
+    <div class="log-popup" id="logPopup">
+        <strong>Log Feature</strong>
+        <div class="popup-buttons">
+            <button class="popup-btn" id="photoBtn">📷 Take Photo</button>
+            <button class="popup-btn" id="waterBtn">💧 Water</button>
+            <button class="popup-btn" id="manualBtn">✍️ Manual Entry</button>
+            <button class="popup-btn" id="weightBtn">⚖️ Log Weight</button>
+
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Navigation Bar -->
+<nav class="bottom-nav" role="navigation" aria-label="Main navigation">
+    <a href="habits.html" aria-label="Go to Habits page">
+        <img src="images/Onriselogo.png" alt="Onrise" width="50">
+    </a>
+    <a href="index.html" aria-label="Go to Dashboard page">
+        <img src="images/goldencarrotblackbg.jpg" alt="Golden carrot" width="50">
+    </a>
+    <a href="settings.html" aria-label="Go to Settings page">
+        <img src="images/Settingsblackpng.png" alt="Settings" width="50">
+    </a>
+</nav>
+
+</body>
+</html>

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="common.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Manual Macro Tracker - AI Powered</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #121212;
+            color: white;
+            padding: 20px;
+        }
+        input, button {
+            padding: 10px;
+            font-size: 1rem;
+            margin: 10px 0;
+            width: 100%;
+            max-width: 400px;
+        }
+        #output {
+            margin-top: 20px;
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .visually-hidden {
+            position: absolute !important;
+            height: 1px;
+            width: 1px;
+            overflow: hidden;
+            clip: rect(1px, 1px, 1px, 1px);
+            white-space: nowrap;
+        }
+        .food-card {
+    background: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px 0;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+.food-card:hover {
+    background: #2c2c2c;
+}
+
+    </style>
+</head>
+<body>
+
+<h1>Manual Macro Tracker</h1>
+
+<label for="foodInput" class="visually-hidden">Enter food and amount</label>
+<input type="text" id="foodInput" placeholder="Type food + amount here..." aria-label="Food and amount input" />
+<button id="addFoodBtn">Add Food</button>
+
+<div id="output">
+    <h2>Your Logged Foods</h2>
+    <ul id="foodList"></ul>
+    <h3>Total Macros</h3>
+    <p id="totals">Calories: 0 kcal | Protein: 0g | Carbs: 0g | Fat: 0g</p>
+</div>
+
+<script>
+    const foodList = [];
+    const foodListEl = document.getElementById('foodList');
+    const totalsEl = document.getElementById('totals');
+
+    const NUTRITIONIX_APP_ID = 'd4b13843';
+    const NUTRITIONIX_API_KEY = '58598fcb53d06919c602f3e6472cc35c';
+
+    function getTodayKey(base) {
+        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+        return `${base}_${today}`;
+    }
+
+    function saveFoodList(list) {
+        localStorage.setItem(getTodayKey('foodList'), JSON.stringify(list));
+    }
+
+    function loadFoodList() {
+        const saved = localStorage.getItem(getTodayKey('foodList'));
+        return saved ? JSON.parse(saved) : [];
+    }
+
+    function clearOldFoodData(maxDays = 7) {
+        const now = new Date();
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith('foodList_')) {
+                const dateStr = key.split('_')[1];
+                const entryDate = new Date(dateStr);
+                const ageInDays = (now - entryDate) / (1000 * 60 * 60 * 24);
+                if (ageInDays > maxDays) {
+                    localStorage.removeItem(key);
+                    console.log(`🧹 Removed old log: ${key}`);
+                }
+            }
+        }
+    }
+
+    function renderList() {
+    foodListEl.innerHTML = '';
+    let totalCalories = 0, totalProtein = 0, totalCarbs = 0, totalFat = 0;
+
+    foodList.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = 'food-card';
+        card.tabIndex = 0;
+        card.setAttribute('role', 'button');
+        card.setAttribute('aria-label', `View macros for ${item.food_name}`);
+
+        card.innerHTML = `
+            <strong>${item.food_name}</strong><br />
+            ${item.serving_qty} ${item.serving_unit}<br />
+            🔥 ${item.nf_calories.toFixed(1)} kcal |
+            🥩 ${item.nf_protein.toFixed(1)}g |
+            🌾 ${item.nf_total_carbohydrate.toFixed(1)}g |
+            🥑 ${item.nf_total_fat.toFixed(1)}g
+        `;
+
+        // Save this food item on long press / right-click
+        const saveAndRedirect = () => {
+            localStorage.setItem('lastEntry', JSON.stringify({
+                prompt: `${item.serving_qty} ${item.serving_unit} ${item.food_name}`,
+                kcal: item.nf_calories.toFixed(1),
+                protein: item.nf_protein.toFixed(1),
+                fat: item.nf_total_fat.toFixed(1),
+                carbs: item.nf_total_carbohydrate.toFixed(1)
+            }));
+            window.location.href = 'macro.html';
+        };
+
+        // Right click
+        card.addEventListener('contextmenu', e => {
+            e.preventDefault();
+            saveAndRedirect();
+        });
+
+        // Long press (mobile)
+        let pressTimer;
+        card.addEventListener('touchstart', () => {
+            pressTimer = setTimeout(saveAndRedirect, 600);
+        });
+        card.addEventListener('touchend', () => clearTimeout(pressTimer));
+        card.addEventListener('touchmove', () => clearTimeout(pressTimer));
+
+        foodListEl.appendChild(card);
+
+        totalCalories += item.nf_calories;
+        totalProtein += item.nf_protein;
+        totalCarbs += item.nf_total_carbohydrate;
+        totalFat += item.nf_total_fat;
+    });
+
+    totalsEl.textContent = `Calories: ${totalCalories.toFixed(1)} kcal | Protein: ${totalProtein.toFixed(1)}g | Carbs: ${totalCarbs.toFixed(1)}g | Fat: ${totalFat.toFixed(1)}g`;
+
+    saveFoodList(foodList);
+    saveCompactMacros(totalProtein, totalFat, totalCarbs, totalCalories);
+}
+
+
+    async function getNutritionData(query) {
+        const url = 'https://trackapi.nutritionix.com/v2/natural/nutrients';
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-app-id': NUTRITIONIX_APP_ID,
+                    'x-app-key': NUTRITIONIX_API_KEY
+                },
+                body: JSON.stringify({ query })
+            });
+
+            if (!response.ok) {
+                throw new Error('API error: ' + response.status);
+            }
+
+            const data = await response.json();
+            return data.foods;
+        } catch (error) {
+            console.error('🔥 API request failed:', error);
+            alert('Something went wrong with the Nutritionix API: ' + error.message);
+            return null;
+        }
+    }
+
+    function saveCompactMacros(protein, fat, carbs, calories) {
+        const now = new Date();
+        const day = String(now.getDate()).padStart(2, '0');
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const year = now.getFullYear();
+        const compact = `${day} ${month} ${year} ${protein.toFixed(0)}p ${fat.toFixed(0)}f ${carbs.toFixed(0)}c ${calories.toFixed(0)}k`;
+        const storageKey = `macros_${day}-${month}-${year}`;
+        localStorage.setItem(storageKey, compact);
+        console.log(`📦 Saved: ${storageKey} => ${compact}`);
+    }
+
+    document.getElementById('addFoodBtn').addEventListener('click', async () => {
+        const input = document.getElementById('foodInput').value.trim();
+        if (!input) return alert('Type something before you hit that button!');
+
+        const foods = await getNutritionData(input);
+        if (foods) {
+            foodList.push(...foods);
+            renderList();
+            document.getElementById('foodInput').value = '';
+
+            const lastFood = foods[0];
+            localStorage.setItem('lastEntry', JSON.stringify({
+                prompt: input,
+                kcal: lastFood.nf_calories.toFixed(1),
+                protein: lastFood.nf_protein.toFixed(1),
+                fat: lastFood.nf_total_fat.toFixed(1),
+                carbs: lastFood.nf_total_carbohydrate.toFixed(1)
+            }));
+
+            setTimeout(() => {
+                window.location.href = "macro.html";
+            }, 50);
+        }
+    });
+
+    document.getElementById('foodInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('addFoodBtn').click();
+        }
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+        clearOldFoodData(); // Optional: Keep only recent logs
+        const savedFoods = loadFoodList();
+        if (savedFoods.length) {
+            foodList.push(...savedFoods);
+            renderList();
+        }
+    });
+
+    localStorage.setItem('macroPrompt', '200g cooked chicken, 200g rice');
+    localStorage.setItem('macroData', JSON.stringify({
+        kcal: 600,
+        protein: 40,
+        fat: 15,
+        carbs: 70
+    }));
+</script>
+
+<script src="common.js"></script>
+
+<!-- Floating Log Button -->
+<div class="log-btn-container" id="logBtnContainer" tabindex="0" aria-label="Open logging options">
+    <div class="log-btn" id="logBtn" role="button" aria-pressed="false" tabindex="0" title="Logging features">✍️</div>
+    <div class="log-popup" id="logPopup">
+        <strong>Log Feature</strong>
+        <div class="popup-buttons">
+            <button class="popup-btn" id="photoBtn">📷 Take Photo</button>
+            <button class="popup-btn" id="waterBtn">💧 Water</button>
+            <button class="popup-btn" id="manualBtn">✍️ Manual Entry</button>
+            <button class="popup-btn" id="weightBtn">⚖️ Log Weight</button>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Navigation Bar -->
+<nav class="bottom-nav" role="navigation" aria-label="Main navigation">
+    <a href="habits.html" aria-label="Go to Habits page">
+        <img src="images/Onriselogo.png" alt="Onrise" width="50">
+    </a>
+    <a href="index.html" aria-label="Go to Dashboard page">
+        <img src="images/goldencarrotblackbg.jpg" alt="Golden carrot" width="50">
+    </a>
+    <a href="settings.html" aria-label="Go to Settings page">
+        <img src="images/Settingsblackpng.png" alt="Settings" width="50">
+    </a>
+</nav>
+
+</body>
+</html>
