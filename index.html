@@ -1,48 +1,110 @@
 <!DOCTYPE html>
-<html lang="en" >
+<html lang="en">
 <head>
-    <link rel="stylesheet" href="common.css" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Macro Tracker</title>
+    <title>Macro Tracker :D</title>
+    <link rel="stylesheet" href="common.css" />
     <style>
         body {
           font-family: sans-serif;
           background: #121212;
           color: white;
           padding: 20px;
+          padding-bottom: 120px;
+        }
+#calorieRing {
+  display: block;
+  margin: 0 auto;
+
+}
+
+#calorieRing circle {
+  fill: none;
+  stroke-width: 12;
+  stroke-linecap: round;
+
+}
+
+#calorieRing circle.bg {
+  stroke: #333;
+
+}
+
+#calorieRing circle.progress {
+  stroke: #bf6b41;
+  stroke-dasharray: 339.292;
+  stroke-dashoffset: 339.292;
+  transition: stroke-dashoffset 0.8s ease;
+  transform: rotate(90deg);
+  transform-origin: 60px 60px;
+}
+
+        h1, h2 {
+          text-align: center;
         }
 
-        .habit {
-          padding: 10px 20px;
-          margin: 10px 0;
-          background: #1e1e1e;
-          border-left: 6px solid #4CAF50;
-          cursor: pointer;
-          transition: all 0.2s ease;
+        .macro {
+          margin: 0px 0;
         }
 
-        .habit.done {
-          background: #2e7d32;
-          text-decoration: line-through;
+        .macro-label {
+          font-weight: bold;
+          margin-bottom: 0px;
+          display: block;
         }
 
-        .habit:hover {
-          opacity: 0.8;
+        .macro-value {
+          text-align: right;
+          margin-top: 0px;
+          font-size: 0.9rem;
         }
 
-        .nav {
+        progress {
+          width: 100%;
+          height: 24px;
+          appearance: none;
+        }
+
+        progress::-webkit-progress-bar {
+          background: #333;
+          border-radius: 12px;
+        }
+
+       #proteinBar::-webkit-progress-value {
+  background: #ed6553;
+  border-radius: 12px;
+}
+
+#carbBar::-webkit-progress-value {
+  background: #edc953;
+  border-radius: 12px;
+}
+
+#fatBar::-webkit-progress-value {
+  background: #aaed53;
+  border-radius: 12px;
+}
+
+        #totals {
           margin-top: 30px;
+          background: #1e1e1e;
+          padding: 20px;
+          border-radius: 8px;
         }
 
-        .nav a {
-          color: #4CAF50;
-          text-decoration: none;
-          margin-right: 10px;
+        .food-card {
+          background: #1e1e1e;
+          border: 1px solid #333;
+          border-radius: 8px;
+          padding: 15px;
+          margin: 10px 0;
+          cursor: pointer;
+          transition: background 0.2s ease;
         }
 
-        .nav a:hover {
-          text-decoration: underline;
+        .food-card:hover {
+          background: #2c2c2c;
         }
 
 
@@ -50,50 +112,213 @@
 </head>
 <body>
 
-<main id="mainContent">
-    <!-- Dashboard Section -->
-    <section id="dashboardPage">
-        <h1>Macrotracker(later)</h1>
-        <p>This is your dashboard content area.</p>
-    </section>
+<h1>Macro tracker :3</h1>
+
+<div>
+    <div class="macro" style="text-align:center;">
+        <span class="macro-label" style="; font-weight:bold; font-size:2rem;">🔥 Calories</span>
+        <svg id="calorieRing" width="160" height="160" viewBox="0 0 120 120">
+            <circle class="bg" cx="60" cy="60" r="54" />
+            <circle class="progress" cx="60" cy="60" r="54" />
+        </svg>
+        <div id="calorieText" style="color:#bb86fc; font-weight:bold; font-size:1.2rem; margin-top: 8px;">0 / 2000 kcal</div>
+    </div>
 
 
-</main>
+    <div class="macro">
+        <span class="macro-label">Protein 🥩</span>
+        <progress id="proteinBar" max="150" value="0"></progress>
+        <div class="macro-value" id="proteinVal">0 / 150g</div>
+    </div>
 
+    <div class="macro">
+        <span class="macro-label">Carbs 🌾</span>
+        <progress id="carbBar" max="250" value="0"></progress>
+        <div class="macro-value" id="carbVal">0 / 250g</div>
+    </div>
+
+    <div class="macro">
+        <span class="macro-label">Fat 🥑</span>
+        <progress id="fatBar" max="70" value="0"></progress>
+        <div class="macro-value" id="fatVal">0 / 70g</div>
+    </div>
+
+    <h2>Your Logged Foods</h2>
+    <ul id="foodList"></ul>
+
+</div>
 
 <script>
+    function getGoal(key, defaultVal) {
+      const val = localStorage.getItem(key);
+      return val ? parseFloat(val) : defaultVal;
+    }
+
     function loadTodayMacros() {
+      const today = new Date().toISOString().split('T')[0];
+      const saved = localStorage.getItem(`foodList_${today}`);
+      let macros = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+
+      if (saved) {
+        try {
+          const items = JSON.parse(saved);
+          for (const item of items) {
+            macros.calories += item.nf_calories || 0;
+            macros.protein += item.nf_protein || 0;
+            macros.carbs += item.nf_total_carbohydrate || 0;
+            macros.fat += item.nf_total_fat || 0;
+          }
+        } catch (e) {
+          console.error('Failed to parse saved food data:', e);
+        }
+      }
+
+      return macros;
+    }
+
+    function updateBars() {
+  const macros = loadTodayMacros();
+
+  const calorieGoal = getGoal('goalCalories', 2000);
+  const proteinGoal = getGoal('goalProtein', 150);
+  const carbGoal = getGoal('goalCarbs', 250);
+  const fatGoal = getGoal('goalFat', 70);
+
+  // ======== Calories circular ring update ========
+  const radius = 54;
+  const circumference = 2 * Math.PI * radius;
+  const progressCircle = document.querySelector('#calorieRing circle.progress');
+
+  let percent = macros.calories / calorieGoal;
+  if (percent > 1) percent = 1;
+
+  const offset = circumference * (1 - percent);
+  progressCircle.style.strokeDashoffset = offset;
+
+  document.getElementById('calorieText').textContent = `${macros.calories.toFixed(0)} / ${calorieGoal} kcal`;
+
+  // ======== Other macros update bars ========
+  document.getElementById('proteinBar').max = proteinGoal;
+  document.getElementById('proteinBar').value = macros.protein;
+  document.getElementById('proteinVal').textContent = `${macros.protein.toFixed(0)} / ${proteinGoal}g`;
+
+  document.getElementById('carbBar').max = carbGoal;
+  document.getElementById('carbBar').value = macros.carbs;
+  document.getElementById('carbVal').textContent = `${macros.carbs.toFixed(0)} / ${carbGoal}g`;
+
+  document.getElementById('fatBar').max = fatGoal;
+  document.getElementById('fatBar').value = macros.fat;
+  document.getElementById('fatVal').textContent = `${macros.fat.toFixed(0)} / ${fatGoal}g`;
+}
+
+window.addEventListener('DOMContentLoaded', updateBars);
+
+
+
+</script>
+
+<script>
+    const foodList = [];
+    const foodListEl = document.getElementById('foodList');
+    const totalsEl = document.getElementById('totals');
+
+    function getTodayKey(base) {
+      const today = new Date().toISOString().split('T')[0];
+      return `${base}_${today}`;
+    }
+
+    function saveFoodList(list) {
+      localStorage.setItem(getTodayKey('foodList'), JSON.stringify(list));
+    }
+
+    function loadFoodList() {
+      const saved = localStorage.getItem(getTodayKey('foodList'));
+      return saved ? JSON.parse(saved) : [];
+    }
+
+    function clearOldFoodData(maxDays = 7) {
+      const now = new Date();
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith('foodList_')) {
+          const dateStr = key.split('_')[1];
+          const entryDate = new Date(dateStr);
+          const ageInDays = (now - entryDate) / (1000 * 60 * 60 * 24);
+          if (ageInDays > maxDays) {
+            localStorage.removeItem(key);
+            console.log(`🧹 Removed old log: ${key}`);
+          }
+        }
+      }
+    }
+
+    function saveCompactMacros(protein, fat, carbs, calories) {
       const now = new Date();
       const day = String(now.getDate()).padStart(2, '0');
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const year = now.getFullYear();
-
-      const storageKey = `macros-${day}-${month}-${year}`;
-      const saved = localStorage.getItem(storageKey);
-      if (saved) {
-        console.log("🧾 Loaded saved macros:", saved);
-        document.getElementById('summaryBox').textContent = saved;
-      } else {
-        document.getElementById('summaryBox').textContent = 'No macros logged today 💀';
-      }
+      const compact = `${day} ${month} ${year} ${protein.toFixed(0)}p ${fat.toFixed(0)}f ${carbs.toFixed(0)}c ${calories.toFixed(0)}k`;
+      const storageKey = `macros_${day}-${month}-${year}`;
+      localStorage.setItem(storageKey, compact);
+      console.log(`📦 Saved: ${storageKey} => ${compact}`);
     }
 
-            // ✅ ADD THIS FUNCTION — it's missing!
-        function showPage(pageId) {
-          const sections = document.querySelectorAll('main > section');
-          sections.forEach(section => {
-            section.style.display = (section.id === pageId) ? 'block' : 'none';
-          });
-        }
+    function renderList() {
+      foodListEl.innerHTML = '';
+      let totalCalories = 0, totalProtein = 0, totalCarbs = 0, totalFat = 0;
 
-        // ✅ Optional: Load dashboard first
-        window.addEventListener('DOMContentLoaded', () => showPage('dashboardPage'));
+      foodList.forEach((item) => {
+        const card = document.createElement('div');
+        card.className = 'food-card';
+        card.tabIndex = 0;
+        card.setAttribute('role', 'button');
+        card.setAttribute('aria-label', `View macros for ${item.food_name}`);
+
+        card.innerHTML = `
+          <strong>${item.food_name}</strong><br />
+          ${item.serving_qty} ${item.serving_unit}<br />
+          🔥 ${item.nf_calories.toFixed(1)} kcal |
+          🥩 ${item.nf_protein.toFixed(1)}g |
+          🌾 ${item.nf_total_carbohydrate.toFixed(1)}g |
+          🥑 ${item.nf_total_fat.toFixed(1)}g
+        `;
+
+        card.addEventListener('contextmenu', e => {
+          e.preventDefault();
+          localStorage.setItem('lastEntry', JSON.stringify({
+            prompt: `${item.serving_qty} ${item.serving_unit} ${item.food_name}`,
+            kcal: item.nf_calories.toFixed(1),
+            protein: item.nf_protein.toFixed(1),
+            fat: item.nf_total_fat.toFixed(1),
+            carbs: item.nf_total_carbohydrate.toFixed(1)
+          }));
+          window.location.href = 'macro.html';
+        });
+
+        foodListEl.appendChild(card);
+
+        totalCalories += item.nf_calories;
+        totalProtein += item.nf_protein;
+        totalCarbs += item.nf_total_carbohydrate;
+        totalFat += item.nf_total_fat;
+      });
+
+      totalsEl.textContent = `Calories: ${totalCalories.toFixed(1)} kcal | Protein: ${totalProtein.toFixed(1)}g | Carbs: ${totalCarbs.toFixed(1)}g | Fat: ${totalFat.toFixed(1)}g`;
+
+      saveFoodList(foodList);
+      saveCompactMacros(totalProtein, totalFat, totalCarbs, totalCalories);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      clearOldFoodData();
+      const savedFoods = loadFoodList();
+      if (savedFoods.length) {
+        foodList.push(...savedFoods);
+        renderList();
+      }
+    });
 </script>
-
-
 <script src="common.js"></script>
-<!-- Floating Log Button -->
-
 <div class="log-btn-container" id="logBtnContainer" tabindex="0" aria-label="Open logging options">
     <div class="log-btn" id="logBtn" role="button" aria-pressed="false" tabindex="0" title="Logging features">✍️</div>
     <div class="log-popup" id="logPopup">
@@ -111,16 +336,15 @@
 <!-- Bottom Navigation Bar -->
 <nav class="bottom-nav" role="navigation" aria-label="Main navigation">
     <a href="habits.html" aria-label="Go to Habits page">
-        <img src="images/Onriselogo.png" alt="Onrise" width="50">
+        <img src="images/Onriselogo.png" alt="Onrise" />
     </a>
     <a href="index.html" aria-label="Go to Dashboard page">
-        <img src="images/goldencarrotblackbg.jpg" alt="Golden carrot" width="50">
+        <img src="images/goldencarrotblackbg.jpg" alt="Golden carrot" />
     </a>
     <a href="settings.html" aria-label="Go to Settings page">
-        <img src="images/Settingsblackpng.png" alt="Settings" width="50">
+        <img src="images/Settingsblackpng.png" alt="Settings" />
     </a>
 </nav>
 
 </body>
-
 </html>

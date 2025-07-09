@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="common.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Macro Tracker Overview</title>
+    <style>
+        body {
+          font-family: sans-serif;
+          background: #121212;
+          color: white;
+          padding: 20px;
+        }
+        h1, h2 {
+          text-align: center;
+        }
+        .macro {
+          margin: 15px 0;
+        }
+        .macro-label {
+          font-weight: bold;
+          margin-bottom: 6px;
+          display: block;
+        }
+        progress {
+          width: 100%;
+          height: 24px;
+          appearance: none;
+        }
+        progress::-webkit-progress-bar {
+          background: #333;
+          border-radius: 12px;
+        }
+        progress::-webkit-progress-value {
+          background: #bb86fc;
+          border-radius: 12px;
+        }
+        .macro-value {
+          text-align: right;
+          margin-top: 4px;
+          font-size: 0.9rem;
+        }
+        #totals {
+          margin-top: 30px;
+          background: #1e1e1e;
+          padding: 20px;
+          border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>My Macro Tracker 🍽️</h1>
+
+<div id="totals">
+    <h2>Today's Macros</h2>
+
+    <div class="macro">
+        <span class="macro-label">Calories</span>
+        <progress id="calorieBar" max="2000" value="0"></progress>
+        <div class="macro-value" id="calorieVal">0 / 2000 kcal</div>
+    </div>
+
+    <div class="macro">
+        <span class="macro-label">Protein</span>
+        <progress id="proteinBar" max="150" value="0"></progress>
+        <div class="macro-value" id="proteinVal">0 / 150g</div>
+    </div>
+
+    <div class="macro">
+        <span class="macro-label">Carbs</span>
+        <progress id="carbBar" max="250" value="0"></progress>
+        <div class="macro-value" id="carbVal">0 / 250g</div>
+    </div>
+
+    <div class="macro">
+        <span class="macro-label">Fat</span>
+        <progress id="fatBar" max="70" value="0"></progress>
+        <div class="macro-value" id="fatVal">0 / 70g</div>
+    </div>
+</div>
+
+<script>
+    function getGoal(key, defaultVal) {
+      const val = localStorage.getItem(key);
+      return val ? parseFloat(val) : defaultVal;
+    }
+
+    function loadTodayMacros() {
+      const today = new Date().toISOString().split('T')[0];
+      const saved = localStorage.getItem(`foodList_${today}`);
+      let macros = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+
+      if (saved) {
+        try {
+          const items = JSON.parse(saved);
+          for (const item of items) {
+            macros.calories += item.nf_calories || 0;
+            macros.protein += item.nf_protein || 0;
+            macros.carbs += item.nf_total_carbohydrate || 0;
+            macros.fat += item.nf_total_fat || 0;
+          }
+        } catch (e) {
+          console.error('Failed to parse saved food data:', e);
+        }
+      }
+
+      return macros;
+    }
+
+    function updateBars() {
+      const macros = loadTodayMacros();
+
+      const calorieGoal = getGoal('goalCalories', 2000);
+      const proteinGoal = getGoal('goalProtein', 150);
+      const carbGoal = getGoal('goalCarbs', 250);
+      const fatGoal = getGoal('goalFat', 70);
+
+      document.getElementById('calorieBar').max = calorieGoal;
+      document.getElementById('calorieBar').value = macros.calories;
+      document.getElementById('calorieVal').textContent = `${macros.calories.toFixed(0)} / ${calorieGoal} kcal`;
+
+      document.getElementById('proteinBar').max = proteinGoal;
+      document.getElementById('proteinBar').value = macros.protein;
+      document.getElementById('proteinVal').textContent = `${macros.protein.toFixed(0)} / ${proteinGoal}g`;
+
+      document.getElementById('carbBar').max = carbGoal;
+      document.getElementById('carbBar').value = macros.carbs;
+      document.getElementById('carbVal').textContent = `${macros.carbs.toFixed(0)} / ${carbGoal}g`;
+
+      document.getElementById('fatBar').max = fatGoal;
+      document.getElementById('fatBar').value = macros.fat;
+      document.getElementById('fatVal').textContent = `${macros.fat.toFixed(0)} / ${fatGoal}g`;
+    }
+
+    window.addEventListener('DOMContentLoaded', updateBars);
+</script>
+
+<!-- Floating Log Button -->
+<div class="log-btn-container" id="logBtnContainer" tabindex="0" aria-label="Open logging options">
+    <div class="log-btn" id="logBtn" role="button" aria-pressed="false" tabindex="0" title="Logging features">✍️</div>
+    <div class="log-popup" id="logPopup">
+        <strong>Log Feature</strong>
+        <div class="popup-buttons">
+            <button class="popup-btn" id="photoBtn">📷 Take Photo</button>
+            <button class="popup-btn" id="waterBtn">💧 Water</button>
+            <button class="popup-btn" id="manualBtn">✍️ Manual Entry</button>
+            <button class="popup-btn" id="weightBtn">⚖️ Log Weight</button>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Navigation Bar -->
+<nav class="bottom-nav" role="navigation" aria-label="Main navigation">
+    <a href="habits.html" aria-label="Go to Habits page">
+        <img src="images/Onriselogo.png" alt="Onrise" width="50">
+    </a>
+    <a href="index.html" aria-label="Go to Dashboard page">
+        <img src="images/goldencarrotblackbg.jpg" alt="Golden carrot" width="50">
+    </a>
+    <a href="settings.html" aria-label="Go to Settings page">
+        <img src="images/Settingsblackpng.png" alt="Settings" width="50">
+    </a>
+</nav>
+
+<script src="common.js"></script>
+</body>
+</html>
