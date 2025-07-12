@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <link rel="stylesheet" href="common.css" />
+
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Habits. Slayyy :D</title>
     <style>
@@ -76,7 +77,7 @@
 <div id="habits-list"></div>
 
 <div class="actions">
-    <button onclick="addNewHabit()">➕ Add Habit</button>
+
     <button onclick="window.location.href='edithabits.html'">✏️ Edit Habits</button>
 </div>
 
@@ -152,6 +153,32 @@
 
     window.addEventListener('DOMContentLoaded', renderHabits);
 </script>
+<script src="common.js"></script>
+<div class="log-btn-container" id="logBtnContainer" tabindex="0" aria-label="Open logging options">
+    <div class="log-btn" id="logBtn" role="button" aria-pressed="false" tabindex="0" title="Logging features">✍️</div>
+    <div class="log-popup" id="logPopup">
+        <strong>Log Feature</strong>
+        <div class="popup-buttons">
+            <button class="popup-btn" id="photoBtn">📷 Take Photo</button>
+            <button class="popup-btn" id="waterBtn">💧 Water</button>
+            <button class="popup-btn" id="manualBtn">✍️ Manual Entry</button>
+            <button class="popup-btn" id="weightBtn">⚖️ Log Weight</button>
 
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Navigation Bar -->
+<nav class="bottom-nav" role="navigation" aria-label="Main navigation">
+    <a href="habits.html" aria-label="Go to Habits page">
+        <img src="images/Onriselogo.png" alt="Onrise" />
+    </a>
+    <a href="index.html" aria-label="Go to Dashboard page">
+        <img src="images/goldencarrotblackbg.jpg" alt="Golden carrot" />
+    </a>
+    <a href="settings.html" aria-label="Go to Settings page">
+        <img src="images/Settingsblackpng.png" alt="Settings" />
+    </a>
+</nav>
 </body>
 </html>
