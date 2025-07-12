@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Edit Habits</title>
+    <style>
+        body {
+          background: #121212;
+          color: white;
+          font-family: sans-serif;
+          padding: 20px;
+        }
+
+        .habit {
+          display: flex;
+          align-items: center;
+          margin: 10px 0;
+        }
+
+        .habit input {
+          background: #1e1e1e;
+          border: none;
+          color: white;
+          padding: 8px;
+          margin-right: 10px;
+        }
+
+        .habit input.name {
+          flex: 1;
+        }
+
+        .habit input.points {
+          width: 60px;
+        }
+
+        .habit button {
+          background: red;
+          color: white;
+          border: none;
+          padding: 6px 10px;
+          cursor: pointer;
+        }
+
+        .buttons {
+          margin-top: 20px;
+        }
+
+        button {
+          padding: 10px 15px;
+          font-size: 16px;
+          margin-right: 10px;
+        }
+        .buttons button {
+  padding: 10px 18px;
+  margin-right: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.buttons button:first-child {
+  background: #2196F3;
+  color: white;
+}
+
+.buttons button:first-child:hover {
+  background: #0b7dda;
+}
+
+.buttons button:last-child {
+  background: #4CAF50;
+  color: white;
+}
+
+.buttons button:last-child:hover {
+  background: #388e3c;
+}
+
+    </style>
+</head>
+<body>
+<h1>Edit Your Habits</h1>
+
+<div id="edit-list"></div>
+
+<div class="buttons">
+    <button onclick="addBlankHabit()">➕ Add Habit</button>
+    <button onclick="saveAndReturn()">✅ Save & Return</button>
+</div>
+
+<script>
+    let habits = JSON.parse(localStorage.getItem('habitsData')) || [];
+    const editList = document.getElementById('edit-list');
+
+    function renderEditor() {
+      editList.innerHTML = '';
+      habits.forEach((habit, index) => {
+        const div = document.createElement('div');
+        div.className = 'habit';
+
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.className = 'name';
+        nameInput.value = habit.name || '';
+        nameInput.placeholder = 'Habit name';
+
+        const pointsInput = document.createElement('input');
+        pointsInput.type = 'number';
+        pointsInput.className = 'points';
+        pointsInput.value = habit.points || 1;
+        pointsInput.min = 1;
+
+        const delBtn = document.createElement('button');
+        delBtn.textContent = '🗑️';
+        delBtn.onclick = () => {
+          habits.splice(index, 1);
+          renderEditor();
+        };
+
+        nameInput.oninput = () => habit.name = nameInput.value.trim();
+        pointsInput.oninput = () => habit.points = parseInt(pointsInput.value) || 0;
+
+        div.appendChild(nameInput);
+        div.appendChild(pointsInput);
+        div.appendChild(delBtn);
+        editList.appendChild(div);
+      });
+    }
+
+    function addBlankHabit() {
+      habits.push({ name: "", points: 1 });
+      renderEditor();
+    }
+
+    function saveAndReturn() {
+      habits = habits.filter(h => h.name && h.points > 0);
+      localStorage.setItem('habitsData', JSON.stringify(habits));
+      window.location.href = 'habits.html';
+    }
+
+    window.addEventListener('DOMContentLoaded', renderEditor);
+</script>
+
+</body>
+</html>

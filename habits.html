@@ -1,189 +1,157 @@
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <link rel="stylesheet" href="common.css" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Habits. Slayyy :D</title>
-        <style>
-
-            /* Show popup on active class (for click toggle) */
-            .log-btn-container.active .log-popup {
-              opacity: 1;
-              pointer-events: auto;
-            }
-            body {
-              font-family: sans-serif;
-              background: #121212;
-              color: white;
-              padding: 20px;
-              padding-bottom: 120px;
-            }
-
-            .habit {
-              padding: 10px 20px;
-              margin: 10px 0;
-              background: #1e1e1e;
-              border-left: 6px solid #4CAF50;
-              cursor: pointer;
-              transition: all 0.2s ease;
-
-            }
-
-            .habit.done {
-              background: #2e7d32;
-              text-decoration: line-through;
-            }
-
-            .habit:hover {
-              opacity: 0.8;
-            }
-
-            .nav {
-              margin-top: 30px;
-            }
-
-            .nav a {
-              color: #4CAF50;
-              text-decoration: none;
-              margin-right: 10px;
-            }
-
-            .nav a:hover {
-              text-decoration: underline;
-            }
-
-
-        </style>
-    </head>
-    <body>
-    <h1>Track Your Habits</h1>
-
-    <div id="habits-list"></div>
-
-
-
-    <script>
-        const habitList = document.getElementById('habits-list');
-
-        // Load from localStorage or default
-        let habits = JSON.parse(localStorage.getItem('habitsData')) || [
-          { name: "Hit macros", points: 4 },
-          { name: "Exercise", points: 3 },
-          { name: "Read 20 mins", points: 3 },
-          { name: "Meditate 5 mins", points: 2 },
-          { name: "U better click me", points: 5 },
-          { name: "Less than 2 hrs wasted", points: 4 },
-          { name: "+8 hrs of sleep", points: 5},
-          { name: "yoga morning" , points: 1} ,
-          { name: "yoga night" , points: 1} ,
-          { name: "Set goals for tomorrow" , points: 2},
-          { name: "actually accomplish those goals" , points: 4},
-          { name: "Do ur daily goals" , points: 5},
-
-        ];
-
-        // Utility: format date as YYYY-MM-DD
-        function getTodayKey() {
-          const now = new Date();
-          return now.toISOString().split('T')[0];
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="common.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Habits. Slayyy :D</title>
+    <style>
+        body {
+          font-family: sans-serif;
+          background: #121212;
+          color: white;
+          padding: 20px;
+          padding-bottom: 120px;
         }
 
-        function renderHabits() {
-          habitList.innerHTML = '';
-          const today = getTodayKey();
-
-          habits.forEach((habit, index) => {
-            const div = document.createElement('div');
-            div.className = 'habit';
-            div.textContent = `${habit.name} (${habit.points}pt)`;
-
-            const habitDoneKey = `${today}_${habit.name}_done`;
-            const isDone = localStorage.getItem(habitDoneKey) === 'true';
-            if (isDone) div.classList.add('done');
-
-            updateColorByPoints(div, habit.points);
-
-            div.addEventListener('click', () => {
-              const done = !div.classList.contains('done');
-              div.classList.toggle('done');
-              localStorage.setItem(habitDoneKey, done);
-
-              // Update points only if marking as done
-              if (done) {
-                addPointsForToday(habit.points);
-              } else {
-                subtractPointsForToday(habit.points);
-              }
-            });
-
-            habitList.appendChild(div);
-          });
+        .habit {
+          padding: 10px 20px;
+          margin: 10px 0;
+          background: #1e1e1e;
+          border-left: 6px solid #4CAF50;
+          cursor: pointer;
+          transition: all 0.2s ease;
         }
 
-        function updateColorByPoints(div, points) {
-          if (points >= 5) {
-            div.style.borderLeftColor = 'red';
-          } else if (points >= 4) {
-            div.style.borderLeftColor = 'orange';
-          } else if (points >= 3) {
-            div.style.borderLeftColor = 'yellow';
-          } else if (points >= 2) {
-            div.style.borderLeftColor = '#4CAF50'; // green
-          } else {
-            div.style.borderLeftColor = 'lightblue';
-          }
+        .habit.done {
+          background: #2e7d32;
+          text-decoration: line-through;
         }
 
-        // Total points per day saved separately
-        function getDailyPointsKey() {
-          return `points_${getTodayKey()}`;
+        .habit:hover {
+          opacity: 0.8;
         }
 
-        function getTodayPoints() {
-          return parseInt(localStorage.getItem(getDailyPointsKey()) || '0', 10);
+        .nav {
+          margin-top: 30px;
         }
 
-        function addPointsForToday(pts) {
-          const current = getTodayPoints();
-          localStorage.setItem(getDailyPointsKey(), current + pts);
+        .nav a {
+          color: #4CAF50;
+          text-decoration: none;
+          margin-right: 10px;
         }
 
-        function subtractPointsForToday(pts) {
-          const current = getTodayPoints();
-          localStorage.setItem(getDailyPointsKey(), Math.max(0, current - pts));
+        .nav a:hover {
+          text-decoration: underline;
         }
 
-        window.addEventListener('DOMContentLoaded', renderHabits);
-    </script>
-    <script src="common.js"></script>
-    <!-- Floating Log Button -->
-    <div class="log-btn-container" id="logBtnContainer" tabindex="0" aria-label="Open logging options">
-        <div class="log-btn" id="logBtn" role="button" aria-pressed="false" tabindex="0" title="Logging features">✍️</div>
-        <div class="log-popup" id="logPopup">
-            <strong>Log Feature</strong>
-            <div class="popup-buttons">
-                <button class="popup-btn" id="photoBtn">📷 Take Photo</button>
-                <button class="popup-btn" id="waterBtn">💧 Water</button>
-                <button class="popup-btn" id="manualBtn">✍️ Manual Entry</button>
-                <button class="popup-btn" id="weightBtn">⚖️ Log Weight</button>
+        .actions {
+          margin-top: 20px;
+        }
 
-            </div>
-        </div>
-    </div>
+       .actions button {
+  margin-right: 10px;
+  padding: 10px 18px;
+  background: #1e1e1e;
+  color: #4CAF50;
+  border: 2px solid #4CAF50;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
 
-    <!-- Bottom Navigation Bar -->
-    <nav class="bottom-nav" role="navigation" aria-label="Main navigation">
-        <a href="habits.html" aria-label="Go to Habits page">
-            <img src="images/Onriselogo.png" alt="Onrise" width="50">
-        </a>
-        <a href="index.html" aria-label="Go to Dashboard page">
-            <img src="images/goldencarrotblackbg.jpg" alt="Golden carrot" width="50">
-        </a>
-        <a href="settings.html" aria-label="Go to Settings page">
-            <img src="images/Settingsblackpng.png" alt="Settings" width="50">
-        </a>
-    </nav>
+.actions button:hover {
+  background: #4CAF50;
+  color: black;
+}
 
-    </body>
-    </html>
+    </style>
+</head>
+<body>
+<h1>Track Your Habits</h1>
+
+<div id="habits-list"></div>
+
+<div class="actions">
+    <button onclick="addNewHabit()">➕ Add Habit</button>
+    <button onclick="window.location.href='edithabits.html'">✏️ Edit Habits</button>
+</div>
+
+<script>
+    const habitList = document.getElementById('habits-list');
+    let habits = JSON.parse(localStorage.getItem('habitsData')) || [];
+
+    function getTodayKey() {
+      const now = new Date();
+      return now.toISOString().split('T')[0];
+    }
+
+    function renderHabits() {
+      habitList.innerHTML = '';
+      const today = getTodayKey();
+
+      habits.forEach((habit, index) => {
+        if (!habit.name || !habit.points) return; // skip invalid
+        const div = document.createElement('div');
+        div.className = 'habit';
+        div.textContent = `${habit.name} (${habit.points}pt)`;
+
+        const habitDoneKey = `${today}_${habit.name}_done`;
+        const isDone = localStorage.getItem(habitDoneKey) === 'true';
+        if (isDone) div.classList.add('done');
+
+        updateColorByPoints(div, habit.points);
+
+        div.addEventListener('click', () => {
+          const done = !div.classList.contains('done');
+          div.classList.toggle('done');
+          localStorage.setItem(habitDoneKey, done);
+
+          if (done) addPointsForToday(habit.points);
+          else subtractPointsForToday(habit.points);
+        });
+
+        habitList.appendChild(div);
+      });
+    }
+
+    function updateColorByPoints(div, points) {
+      if (points >= 5) div.style.borderLeftColor = 'red';
+      else if (points >= 4) div.style.borderLeftColor = 'orange';
+      else if (points >= 3) div.style.borderLeftColor = 'yellow';
+      else if (points >= 2) div.style.borderLeftColor = '#4CAF50';
+      else div.style.borderLeftColor = 'lightblue';
+    }
+
+    function getDailyPointsKey() {
+      return `points_${getTodayKey()}`;
+    }
+
+    function getTodayPoints() {
+      return parseInt(localStorage.getItem(getDailyPointsKey()) || '0', 10);
+    }
+
+    function addPointsForToday(pts) {
+      const current = getTodayPoints();
+      localStorage.setItem(getDailyPointsKey(), current + pts);
+    }
+
+    function subtractPointsForToday(pts) {
+      const current = getTodayPoints();
+      localStorage.setItem(getDailyPointsKey(), Math.max(0, current - pts));
+    }
+
+    function addNewHabit() {
+      habits.push({ name: "New Habit", points: 1 });
+      localStorage.setItem('habitsData', JSON.stringify(habits));
+      renderHabits();
+    }
+
+    window.addEventListener('DOMContentLoaded', renderHabits);
+</script>
+
+</body>
+</html>
